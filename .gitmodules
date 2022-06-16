@@ -1,0 +1,6 @@
+[submodule "libyang"]
+	path = libyang
+	url = ../../jktjkt/libyang
+[submodule "libyang-cpp"]
+	path = libyang-cpp
+	url = ../../CESNET/libyang-cpp

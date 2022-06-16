@@ -1,0 +1,138 @@
+on:
+  push:
+  pull_request:
+
+name: Windows
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Windows 2022 MSVC"
+            os: windows-2022
+            triplet: x64-windows
+            build_type: Release
+            generators: "Visual Studio 17 2022"
+
+    steps:
+      - name: Unix line endings in git
+        run: |
+          git config --global core.autocrlf input
+          git config --global core.eol lf
+
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Get number of CPU cores
+        id: cpu-cores
+        uses: SimenB/github-actions-cpu-cores@5e7112c2e8c5b63b649a678bc2fb5920d0c8202e
+
+      # - name: change vcpkg
+      #   shell: bash
+      #   run: |
+      #     cd ${VCPKG_INSTALLATION_ROOT//\\//}
+      #     git remote add --fetch jkt https://github.com/jktjkt/vcpkg.git
+      #     git reset --hard jkt/wtf
+
+      - name: Extract VCPKG version
+        id: extract-vcpkg-version
+        shell: bash
+        run: |
+          cd ${VCPKG_INSTALLATION_ROOT//\\//}
+          echo "::set-output name=VCPKG_PATH::$VCPKG_INSTALLATION_ROOT"
+          echo "::set-output name=VCPKG_COMMIT::$(git rev-parse HEAD)"
+          # cd '${{ github.workspace }}/'libyang
+          # echo "::set-output name=LIBYANG_COMMIT::$(git rev-parse HEAD)"
+          # cd '${{ github.workspace }}/'libyang-cpp
+          # echo "::set-output name=LIBYANG_CPP_COMMIT::$(git rev-parse HEAD)"
+
+      # Unfortunately, this is broken due to dlfcn-win32 assuming that "debug" is always there:
+      # (the last item at https://github.com/microsoft/vcpkg/issues/6045)
+      # Fixed via https://github.com/microsoft/vcpkg/pull/25278
+      # But then bzip2 also fails...
+      # - name: Slim down VCPKG builds
+      #   shell: bash
+      #   run: echo 'set(VCPKG_BUILD_TYPE "${{ matrix.build_type }}")' >> ${VCPKG_INSTALLATION_ROOT//\\//}/triplets/${{ matrix.triplet }}.cmake
+
+      - name: Cache VCPKG
+        id: cache-vcpkg
+        uses: actions/cache@v3
+        with:
+          path: '${{ steps.extract-vcpkg-version.outputs.VCPKG_PATH }}'
+          key: 'vcpkg-1-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.triplet }}-${{ steps.extract-vcpkg-version.outputs.VCPKG_COMMIT }}'
+
+      - name: Configure Windows PATH
+        shell: bash
+        run: |
+          echo '${{ github.workspace }}/'../target/bin >> $GITHUB_PATH
+          echo '${{ github.workspace }}/'../target/lib >> $GITHUB_PATH
+          echo ${VCPKG_INSTALLATION_ROOT//\\//}'/installed/${{ matrix.triplet }}/bin' >> $GITHUB_PATH
+
+      - name: Install Windows dependencies
+        if: ${{ steps.cache-vcpkg.outputs.cache-hit != 'true' }}
+        run: vcpkg install --triplet=${{ matrix.triplet }} pcre2 pthreads dirent dlfcn-win32 cmocka getopt doctest pkgconf pybind11
+
+      - name: configure libyang
+        shell: bash
+        run: |
+          cmake \
+            -S '${{ github.workspace }}/'libyang \
+            -B '${{ github.workspace }}/'../build-libyang \
+            -G '${{ matrix.generators }}' \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} \
+            -DCMAKE_TOOLCHAIN_FILE=${VCPKG_INSTALLATION_ROOT//\\//}/scripts/buildsystems/vcpkg.cmake \
+            -DENABLE_TESTS=ON \
+            -DCMAKE_INSTALL_PREFIX:PATH='${{ github.workspace }}/'../target
+
+      - name: build libyang
+        working-directory: '${{ github.workspace }}/../build-libyang'
+        run: cmake --build . -j${{ steps.cpu-cores.outputs.count }} --config ${{ matrix.build_type }}
+
+      - name: test libyang
+        working-directory: '${{ github.workspace }}/../build-libyang'
+        run: ctest --output-on-failure -j${{ steps.cpu-cores.outputs.count }} --build-config ${{ matrix.build_type }}
+
+      - name: install libyang
+        working-directory: '${{ github.workspace }}/../build-libyang'
+        run: cmake --install . --strip
+
+      - name: test the installed yanglint
+        run: yanglint -f tree ${{ github.workspace }}/libyang/tests/modules/yang/ietf-interfaces@2014-05-08.yang
+
+      - name: configure libyang-cpp
+        shell: bash
+        run: |
+          set -ex
+          MY_TARGET=${GITHUB_WORKSPACE//\\//}/../target
+          export MY_PKGCONFIG="${VCPKG_INSTALLATION_ROOT//\\//}/installed/${{ matrix.triplet }}/tools/pkgconf/pkgconf.exe"
+          export PKG_CONFIG_PATH="${VCPKG_INSTALLATION_ROOT//\\//}/installed/${{ matrix.triplet }}/lib/pkgconfig;${MY_TARGET}/lib/pkgconfig"
+          export CXXFLAGS=" /wd4251 /wd4275"
+          cmake \
+            -S '${{ github.workspace }}/'libyang-cpp \
+            -B '${{ github.workspace }}/'../build-libyang-cpp \
+            -G '${{ matrix.generators }}' \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} \
+            -DCMAKE_TOOLCHAIN_FILE=${VCPKG_INSTALLATION_ROOT//\\//}/scripts/buildsystems/vcpkg.cmake \
+            -DPKG_CONFIG_EXECUTABLE=${MY_PKGCONFIG} \
+            -DCMAKE_PREFIX_PATH:PATH=${MY_TARGET} \
+            -DCMAKE_INSTALL_PREFIX:PATH='${{ github.workspace }}/'../target
+
+      - name: build libyang-cpp
+        working-directory: '${{ github.workspace }}/../build-libyang-cpp'
+        run: cmake --build . -j${{ steps.cpu-cores.outputs.count }} --config ${{ matrix.build_type }}
+
+      - name: test libyang-cpp
+        working-directory: '${{ github.workspace }}/../build-libyang-cpp'
+        run: ctest --output-on-failure -j${{ steps.cpu-cores.outputs.count }} --build-config ${{ matrix.build_type }}
+
+      - name: install libyang-cpp
+        working-directory: '${{ github.workspace }}/../build-libyang-cpp'
+        run: cmake --install . --strip
