@@ -2,7 +2,7 @@ on:
   push:
   pull_request:
 
-name: Windows
+name: CI
 
 jobs:
   build:
@@ -12,6 +12,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - name: "Ubuntu 22.04"
+            os: ubuntu-22.04
+            triplet: ""
+            build_type: Release
+            generators: Ninja
+
           - name: "Windows 2022 MSVC"
             os: windows-2022
             triplet: x64-windows
@@ -20,6 +26,7 @@ jobs:
 
     steps:
       - name: Unix line endings in git
+        if: startsWith(matrix.os, 'windows')
         run: |
           git config --global core.autocrlf input
           git config --global core.eol lf
@@ -34,6 +41,7 @@ jobs:
         uses: SimenB/github-actions-cpu-cores@5e7112c2e8c5b63b649a678bc2fb5920d0c8202e
 
       # - name: change vcpkg
+      #   if: startsWith(matrix.os, 'windows')
       #   shell: bash
       #   run: |
       #     cd ${VCPKG_INSTALLATION_ROOT//\\//}
@@ -41,6 +49,7 @@ jobs:
       #     git reset --hard jkt/wtf
 
       - name: Extract VCPKG version
+        if: startsWith(matrix.os, 'windows')
         id: extract-vcpkg-version
         shell: bash
         run: |
@@ -57,10 +66,12 @@ jobs:
       # Fixed via https://github.com/microsoft/vcpkg/pull/25278
       # But then bzip2 also fails...
       # - name: Slim down VCPKG builds
+      #   if: startsWith(matrix.os, 'windows')
       #   shell: bash
       #   run: echo 'set(VCPKG_BUILD_TYPE "${{ matrix.build_type }}")' >> ${VCPKG_INSTALLATION_ROOT//\\//}/triplets/${{ matrix.triplet }}.cmake
 
       - name: Cache VCPKG
+        if: startsWith(matrix.os, 'windows')
         id: cache-vcpkg
         uses: actions/cache@v3
         with:
@@ -68,15 +79,40 @@ jobs:
           key: 'vcpkg-1-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.triplet }}-${{ steps.extract-vcpkg-version.outputs.VCPKG_COMMIT }}'
 
       - name: Configure Windows PATH
+        if: startsWith(matrix.os, 'windows')
         shell: bash
         run: |
           echo '${{ github.workspace }}/'../target/bin >> $GITHUB_PATH
           echo '${{ github.workspace }}/'../target/lib >> $GITHUB_PATH
           echo ${VCPKG_INSTALLATION_ROOT//\\//}'/installed/${{ matrix.triplet }}/bin' >> $GITHUB_PATH
+          echo EXTRA_VCPKG_TARGET_TRIPLET=-DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} >> $GITHUB_ENV
+          echo EXTRA_CMAKE_TOOLCHAIN_FILE=-DCMAKE_TOOLCHAIN_FILE=${VCPKG_INSTALLATION_ROOT//\\//}/scripts/buildsystems/vcpkg.cmake >> $GITHUB_ENV
+          echo EXTRA_PKG_CONFIG_EXECUTABLE=-DPKG_CONFIG_EXECUTABLE=${VCPKG_INSTALLATION_ROOT//\\//}/installed/${{ matrix.triplet }}/tools/pkgconf/pkgconf.exe >> $GITHUB_ENV
+          echo PKG_CONFIG_PATH="${VCPKG_INSTALLATION_ROOT//\\//}/installed/${{ matrix.triplet }}/lib/pkgconfig;${GITHUB_WORKSPACE//\\//}/../target/lib/pkgconfig" >> $GITHUB_ENV
+
+      - name: Configure Windows CXXFLAGS
+        if: startsWith(matrix.os, 'windows')
+        shell: bash
+        run: |
+          echo CXXFLAGS=" /wd4251 /wd4275" >> $GITHUB_ENV
+
+      - name: Configure Linux paths
+        if: startsWith(matrix.os, 'ubuntu')
+        shell: bash
+        run: |
+          realpath -m ${{ github.workspace }}/../target/bin >> $GITHUB_PATH
+          echo LD_LIBRARY_PATH=$(realpath -m ${{ github.workspace }}/../target/lib):$(realpath -m ${{ github.workspace }}/../target/lib64) >> $GITHUB_ENV
+          echo PKG_CONFIG_PATH="$(realpath -m ${{ github.workspace }}/../target)/lib/pkgconfig" >> $GITHUB_ENV
 
       - name: Install Windows dependencies
-        if: ${{ steps.cache-vcpkg.outputs.cache-hit != 'true' }}
+        if: >
+          startsWith(matrix.os, 'windows') &&
+          (steps.cache-vcpkg.outputs.cache-hit != 'true')
         run: vcpkg install --triplet=${{ matrix.triplet }} pcre2 pthreads dirent dlfcn-win32 cmocka getopt doctest pkgconf pybind11
+
+      - name: Install Linux dependencies
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt install -y libpcre2-dev libcmocka-dev doctest-dev pybind11-dev ninja-build
 
       - name: configure libyang
         shell: bash
@@ -86,8 +122,8 @@ jobs:
             -B '${{ github.workspace }}/'../build-libyang \
             -G '${{ matrix.generators }}' \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} \
-            -DCMAKE_TOOLCHAIN_FILE=${VCPKG_INSTALLATION_ROOT//\\//}/scripts/buildsystems/vcpkg.cmake \
+            ${EXTRA_VCPKG_TARGET_TRIPLET:+${EXTRA_VCPKG_TARGET_TRIPLET}} \
+            ${EXTRA_CMAKE_TOOLCHAIN_FILE:+${EXTRA_CMAKE_TOOLCHAIN_FILE}} \
             -DENABLE_TESTS=ON \
             -DCMAKE_INSTALL_PREFIX:PATH='${{ github.workspace }}/'../target
 
@@ -110,19 +146,15 @@ jobs:
         shell: bash
         run: |
           set -ex
-          MY_TARGET=${GITHUB_WORKSPACE//\\//}/../target
-          export MY_PKGCONFIG="${VCPKG_INSTALLATION_ROOT//\\//}/installed/${{ matrix.triplet }}/tools/pkgconf/pkgconf.exe"
-          export PKG_CONFIG_PATH="${VCPKG_INSTALLATION_ROOT//\\//}/installed/${{ matrix.triplet }}/lib/pkgconfig;${MY_TARGET}/lib/pkgconfig"
-          export CXXFLAGS=" /wd4251 /wd4275"
           cmake \
             -S '${{ github.workspace }}/'libyang-cpp \
             -B '${{ github.workspace }}/'../build-libyang-cpp \
             -G '${{ matrix.generators }}' \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} \
-            -DCMAKE_TOOLCHAIN_FILE=${VCPKG_INSTALLATION_ROOT//\\//}/scripts/buildsystems/vcpkg.cmake \
-            -DPKG_CONFIG_EXECUTABLE=${MY_PKGCONFIG} \
-            -DCMAKE_PREFIX_PATH:PATH=${MY_TARGET} \
+            ${EXTRA_VCPKG_TARGET_TRIPLET:+${EXTRA_VCPKG_TARGET_TRIPLET}} \
+            ${EXTRA_CMAKE_TOOLCHAIN_FILE:+${EXTRA_CMAKE_TOOLCHAIN_FILE}} \
+            ${EXTRA_PKG_CONFIG_EXECUTABLE:+${EXTRA_PKG_CONFIG_EXECUTABLE}} \
+            -DCMAKE_PREFIX_PATH:PATH=${GITHUB_WORKSPACE//\\//}/../target \
             -DCMAKE_INSTALL_PREFIX:PATH='${{ github.workspace }}/'../target
 
       - name: build libyang-cpp
