@@ -12,6 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Ubuntu 20.04 is not supported because libyang-cpp needs a newer doctest
           - name: "Ubuntu 22.04"
             os: ubuntu-22.04
             triplet: ""
