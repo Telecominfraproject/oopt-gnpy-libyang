@@ -46,13 +46,13 @@ jobs:
         id: cpu-cores
         uses: SimenB/github-actions-cpu-cores@5e7112c2e8c5b63b649a678bc2fb5920d0c8202e
 
-      # - name: change vcpkg
-      #   if: startsWith(matrix.os, 'windows')
-      #   shell: bash
-      #   run: |
-      #     cd ${VCPKG_INSTALLATION_ROOT//\\//}
-      #     git remote add --fetch jkt https://github.com/jktjkt/vcpkg.git
-      #     git reset --hard jkt/wtf
+      - name: change vcpkg
+        if: startsWith(matrix.os, 'windows')
+        shell: bash
+        run: |
+          cd ${VCPKG_INSTALLATION_ROOT//\\//}
+          git remote add --fetch jkt https://github.com/jktjkt/vcpkg.git
+          git reset --hard jkt/pybind11
 
       - name: Extract VCPKG version
         if: startsWith(matrix.os, 'windows')
