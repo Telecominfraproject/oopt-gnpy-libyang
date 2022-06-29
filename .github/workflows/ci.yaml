@@ -12,9 +12,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Ubuntu 20.04 is not supported because libyang-cpp needs a newer doctest
           - name: "Ubuntu 22.04"
             os: ubuntu-22.04
+            triplet: ""
+            build_type: Release
+            generators: Ninja
+
+          - name: "Ubuntu 20.04 with GCC 10"
+            os: ubuntu-20.04
             triplet: ""
             build_type: Release
             generators: Ninja
@@ -96,6 +101,13 @@ jobs:
         shell: bash
         run: |
           echo CXXFLAGS=" /wd4251 /wd4275" >> $GITHUB_ENV
+
+      - name: GCC 10 on Ubuntu 20.04
+        if: matrix.os == 'ubuntu-20.04'
+        shell: bash
+        run: |
+          echo CC=gcc-10 >> $GITHUB_ENV
+          echo CXX=g++-10 >> $GITHUB_ENV
 
       - name: Configure Linux paths
         if: startsWith(matrix.os, 'ubuntu')
