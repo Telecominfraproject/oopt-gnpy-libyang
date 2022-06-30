@@ -6,29 +6,47 @@ name: CI
 
 jobs:
   build:
-    name: ${{ matrix.name }}
+    name: 'Build: ${{ matrix.name }}'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: "Ubuntu 22.04"
+          - name: "Ubuntu 22.04 Python 3.10"
             os: ubuntu-22.04
-            triplet: ""
             build_type: Release
             generators: Ninja
+            python-version: "3.10"
+            upload-sdist: true
 
-          - name: "Ubuntu 20.04 with GCC 10"
+          - name: "Ubuntu 20.04 with GCC 10 Python 3.8"
             os: ubuntu-20.04
-            triplet: ""
             build_type: Release
             generators: Ninja
+            wheel: manylinux_2_31_x86_64
+            python-version: "3.8"
 
-          - name: "Windows 2022 MSVC"
+          - name: "Ubuntu 20.04 with GCC 10 Python 3.9"
+            os: ubuntu-20.04
+            build_type: Release
+            generators: Ninja
+            wheel: manylinux_2_31_x86_64
+            python-version: "3.9"
+
+          - name: "Ubuntu 20.04 with GCC 10 Python 3.10"
+            os: ubuntu-20.04
+            build_type: Release
+            generators: Ninja
+            wheel: manylinux_2_31_x86_64
+            python-version: "3.10"
+
+          - name: "Windows 2022 MSVC Python 3.10"
             os: windows-2022
             triplet: x64-windows
             build_type: Release
             generators: "Visual Studio 17 2022"
+            wheel: win_amd64
+            python-version: "3.10"
 
     steps:
       - name: Unix line endings in git
@@ -45,6 +63,10 @@ jobs:
       - name: Get number of CPU cores
         id: cpu-cores
         uses: SimenB/github-actions-cpu-cores@5e7112c2e8c5b63b649a678bc2fb5920d0c8202e
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: change vcpkg
         if: startsWith(matrix.os, 'windows')
@@ -90,6 +112,7 @@ jobs:
         run: |
           echo '${{ github.workspace }}/'../target/bin >> $GITHUB_PATH
           echo '${{ github.workspace }}/'../target/lib >> $GITHUB_PATH
+          echo 'C:/Program Files/Microsoft Visual Studio/2022/Enterprise/SDK/ScopeCppSDK/vc15/VC/bin' >> $GITHUB_PATH
           echo ${VCPKG_INSTALLATION_ROOT//\\//}'/installed/${{ matrix.triplet }}/bin' >> $GITHUB_PATH
           echo EXTRA_VCPKG_TARGET_TRIPLET=-DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} >> $GITHUB_ENV
           echo EXTRA_CMAKE_TOOLCHAIN_FILE=-DCMAKE_TOOLCHAIN_FILE=${VCPKG_INSTALLATION_ROOT//\\//}/scripts/buildsystems/vcpkg.cmake >> $GITHUB_ENV
@@ -127,6 +150,12 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
         run: sudo apt install -y libpcre2-dev libcmocka-dev doctest-dev pybind11-dev ninja-build
 
+      - name: Fix pybind on the oldest Ubuntu
+        if: startsWith(matrix.os, 'ubuntu-20')
+        run: |
+          sudo apt remove -y pybind11-dev
+          sudo pip install pybind11[global]
+
       - name: configure libyang
         shell: bash
         run: |
@@ -152,8 +181,8 @@ jobs:
         working-directory: '${{ github.workspace }}/../build-libyang'
         run: cmake --install . --strip
 
-      - name: test the installed yanglint
-        run: yanglint -f tree ${{ github.workspace }}/libyang/tests/modules/yang/ietf-interfaces@2014-05-08.yang
+      # - name: test the installed yanglint
+      #   run: yanglint -f tree ${{ github.workspace }}/libyang/tests/modules/yang/ietf-interfaces@2014-05-08.yang
 
       - name: configure libyang-cpp
         shell: bash
@@ -181,3 +210,191 @@ jobs:
       - name: install libyang-cpp
         working-directory: '${{ github.workspace }}/../build-libyang-cpp'
         run: cmake --install . --strip
+
+      - name: quick install pytest for the test suite
+        if: startsWith(matrix.os, 'ubuntu-22')
+        run: pip install pytest
+
+      - name: quick configure oopt-gnpy-libyang
+        if: startsWith(matrix.os, 'ubuntu-22')
+        shell: bash
+        run: |
+          set -ex
+          cmake \
+            -DSHOW_SO_DEPENDENCIES=ON \
+            -DDONT_WARN_ABOUT_SETUP_PY=ON \
+            -S '${{ github.workspace }}/' \
+            -B '${{ github.workspace }}/'../build-oopt-gnpy-libyang \
+            -G '${{ matrix.generators }}' \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            ${EXTRA_VCPKG_TARGET_TRIPLET:+${EXTRA_VCPKG_TARGET_TRIPLET}} \
+            ${EXTRA_CMAKE_TOOLCHAIN_FILE:+${EXTRA_CMAKE_TOOLCHAIN_FILE}} \
+            ${EXTRA_PKG_CONFIG_EXECUTABLE:+${EXTRA_PKG_CONFIG_EXECUTABLE}} \
+            -DCMAKE_PREFIX_PATH:PATH=${GITHUB_WORKSPACE//\\//}/../target \
+            -DCMAKE_INSTALL_PREFIX:PATH='${{ github.workspace }}/'../target
+
+      - name: quick build oopt-gnpy-libyang
+        if: startsWith(matrix.os, 'ubuntu-22')
+        working-directory: '${{ github.workspace }}/../build-oopt-gnpy-libyang'
+        run: cmake --build . -j${{ steps.cpu-cores.outputs.count }} --config ${{ matrix.build_type }}
+
+      - name: quick install oopt-gnpy-libyang
+        if: startsWith(matrix.os, 'ubuntu-22')
+        working-directory: '${{ github.workspace }}/../build-oopt-gnpy-libyang'
+        run: cmake --install . --strip
+
+      - name: quick test oopt-gnpy-libyang
+        if: startsWith(matrix.os, 'ubuntu-22')
+        working-directory: '${{ github.workspace }}/../build-oopt-gnpy-libyang'
+        run: ctest --output-on-failure -j${{ steps.cpu-cores.outputs.count }} --build-config ${{ matrix.build_type }}
+
+      - name: prepare wheel building
+        run: pip install wheel setuptools build setuptools_scm[toml]
+
+      - name: show Python version
+        run: python --version
+
+      - name: show Python3 version
+        run: python3 --version
+
+      - name: show pip version
+        run: pip --version
+
+      # Don't pass neither --sdist nor --wheel, which means "build sdist and from that, build the wheel". Oh well.
+      - name: build the sdist and wheel
+        shell: bash
+        run: |
+          set -ex
+          export CMAKE_ARGS="${EXTRA_VCPKG_TARGET_TRIPLET:+${EXTRA_VCPKG_TARGET_TRIPLET} }${EXTRA_CMAKE_TOOLCHAIN_FILE:+${EXTRA_CMAKE_TOOLCHAIN_FILE} }${EXTRA_PKG_CONFIG_EXECUTABLE:+${EXTRA_PKG_CONFIG_EXECUTABLE}}"
+          python3 -m build --skip-dependency-check --outdir '${{ github.workspace }}'/build-wheel '${{ github.workspace }}/'
+
+      - name: fix the wheel, oldest Ubuntu
+        if: startsWith(matrix.os, 'ubuntu-20')
+        shell: bash
+        run: |
+          pip install auditwheel
+          find '${{ github.workspace }}'/build-wheel -name '*.whl'
+          auditwheel repair --plat '${{ matrix.wheel }}' '${{ github.workspace }}'/build-wheel/*.whl
+
+      - name: fix the wheel, Windows
+        if: startsWith(matrix.os, 'windows')
+        shell: bash
+        run: |
+          pip install delvewheel
+          delvewheel show '${{ github.workspace }}'/build-wheel/*.whl
+          delvewheel repair '${{ github.workspace }}'/build-wheel/*.whl
+
+      - name: upload the wheel
+        if: matrix.wheel
+        uses: actions/upload-artifact@v3
+        with:
+          name: 'wheel-${{ matrix.wheel }}-${{ matrix.python-version }}'
+          path: |
+            ${{ github.workspace }}/wheelhouse/*.whl
+
+      - name: upload the sdist
+        if: matrix.upload-sdist
+        uses: actions/upload-artifact@v3
+        with:
+          name: sdist
+          path: |
+            ${{ github.workspace }}/build-wheel/*.tar.gz
+
+  test:
+    needs: build
+    name: 'Test: ${{ matrix.name }}'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Ubuntu 22.04 Python 3.10"
+            os: ubuntu-22.04
+            python-version: "3.10"
+            wheel: manylinux_2_31_x86_64
+
+          - name: "Ubuntu 20.04 with GCC 10 Python 3.8"
+            os: ubuntu-20.04
+            wheel: manylinux_2_31_x86_64
+            python-version: "3.8"
+
+          - name: "Ubuntu 20.04 with GCC 10 Python 3.9"
+            os: ubuntu-20.04
+            wheel: manylinux_2_31_x86_64
+            python-version: "3.9"
+
+          - name: "Ubuntu 20.04 with GCC 10 Python 3.10"
+            os: ubuntu-20.04
+            wheel: manylinux_2_31_x86_64
+            python-version: "3.10"
+
+          - name: "Windows 2022 MSVC Python 3.10"
+            os: windows-2022
+            wheel: win_amd64
+            python-version: "3.10"
+
+    steps:
+      - name: Unix line endings in git
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          git config --global core.autocrlf input
+          git config --global core.eol lf
+
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: mkdir wheelhouse
+        shell: bash
+        run: |
+          mkdir ${GITHUB_WORKSPACE//\\//}/wheelhouse
+
+      - name: download the wheel
+        uses: actions/download-artifact@v3
+        id: download-wheel
+        with:
+          name: 'wheel-${{ matrix.wheel }}-${{ matrix.python-version }}'
+          path: ${{ github.workspace }}/wheelhouse
+
+      - name: install the wheel
+        shell: bash
+        run: |
+          pip install --only-binary :all: --no-index --find-links=${GITHUB_WORKSPACE//\\//}/wheelhouse oopt-gnpy-libyang
+
+      - name: install pytest
+        run: pip install pytest
+
+      - name: run pytest
+        working-directory: ${{ github.workspace }}
+        run: pytest -vv
+
+  upload:
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && github.repository_owner == 'Telecominfraproject' }}
+    needs:
+      - build
+      - test
+    name: Upload to PyPI
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: ${{ github.workspace }}/all-artifacts
+
+      - name: rearrange the wheels
+        run: |
+          set -ex
+          mkdir pypi
+          mv -v ${{ github.workspace }}/all-artifacts/*/* pypi/
+
+      - name: upload to pypi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages_dir: pypi/

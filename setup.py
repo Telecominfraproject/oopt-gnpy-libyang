@@ -3,6 +3,7 @@ import re
 import subprocess
 import sys
 
+from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 
@@ -46,6 +47,7 @@ class CMakeBuild(build_ext):
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}",
             f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-DCMAKE_BUILD_TYPE={cfg}",  # not used on MSVC, but no harm
+            "-DDONT_WARN_ABOUT_SETUP_PY=ON",
         ]
         build_args = []
         # Adding CMake arguments set as environment variable
@@ -121,15 +123,31 @@ class CMakeBuild(build_ext):
 # The information here can also be placed in setup.cfg - better separation of
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
-    name="cmake_example",
-    version="0.0.1",
-    author="Dean Moldovan",
-    author_email="dean0x7d@gmail.com",
-    description="A test project using pybind11 and CMake",
-    long_description="",
-    ext_modules=[CMakeExtension("cmake_example")],
+    name="oopt-gnpy-libyang",
+    url="https://github.com/Telecominfraproject/oopt-gnpy-libyang",
+    author="Telecom Infra Project",
+    author_email="jan.kundrat@telecominfraproject.com",
+    description="Opinionated Python bindings for the libyang library",
+    long_description=(Path(__file__).parent / "README.md").read_text(),
+    long_description_content_type="text/markdown; variant=GFM",
+    ext_modules=[CMakeExtension("oopt_gnpy_libyang")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     extras_require={"test": ["pytest>=6.0"]},
-    python_requires=">=3.6",
+    python_requires=">=3.8",
+    license='BSD-3-Clause',
+    download_url='https://pypi.org/project/oopt-gnpy-libyang/',
+    classifiers=(
+        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
+        'Intended Audience :: Telecommunications Industry',
+        'License :: OSI Approved :: BSD License',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Topic :: System :: Networking',
+    ),
 )

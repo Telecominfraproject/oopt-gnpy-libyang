@@ -1,0 +1,4 @@
+prune libyang*
+graft tests/yang
+include CMakeLists.txt oopt-gnpy-libyang.cpp
+global-exclude *.py[cod]

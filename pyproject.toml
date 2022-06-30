@@ -1,14 +1,14 @@
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools>=45",
     "wheel",
     "ninja",
     "cmake>=3.12",
+    "setuptools_scm[toml]>=6.2",
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.isort]
-profile = "black"
+[tool.setuptools_scm]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -17,9 +17,9 @@ xfail_strict = true
 filterwarnings = ["error"]
 testpaths = ["tests"]
 
-[tool.cibuildwheel]
-test-command = "pytest {project}/tests"
-test-extras = ["test"]
-test-skip = ["*universal2:arm64"]
-# Setuptools bug causes collision between pypy and cpython artifacts
-before-build = "rm -rf {project}/build"
+# [tool.cibuildwheel]
+# test-command = "pytest {project}/tests"
+# test-extras = ["test"]
+# test-skip = ["*universal2:arm64"]
+# # Setuptools bug causes collision between pypy and cpython artifacts
+# before-build = "rm -rf {project}/build"
