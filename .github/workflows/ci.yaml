@@ -81,8 +81,8 @@ jobs:
         id: cache-vcpkg
         uses: actions/cache@v3
         with:
-          path: '${{ steps.extract-vcpkg-version.outputs.VCPKG_PATH }}'
-          key: 'vcpkg-1-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.triplet }}-${{ steps.extract-vcpkg-version.outputs.VCPKG_COMMIT }}'
+          path: '${{ steps.extract-vcpkg-version.outputs.VCPKG_PATH }}/installed'
+          key: 'vcpkg-2-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.triplet }}-${{ steps.extract-vcpkg-version.outputs.VCPKG_COMMIT }}'
 
       - name: Configure Windows PATH
         if: startsWith(matrix.os, 'windows')
