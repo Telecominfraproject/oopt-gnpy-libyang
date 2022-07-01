@@ -48,9 +48,20 @@ jobs:
             wheel: win_amd64
             python-version: "3.10"
 
+          - name: "macOS 12 x86_64 Python 3.10"
+            os: macos-12
+            build_type: Release
+            generators: Ninja
+            wheel: macosx_12_0_x86_64
+            python-version: "3.10"
+
+          # Apple LLVM doesn't fully support C++20 (hi std::string::operator<=>),
+          # so we require GCC, but the prebuilt GCC on GitHub Actions virtual environment
+          # does not have a cross compiler. Sorry, no arm64 builds.
+
     steps:
       - name: Unix line endings in git
-        if: startsWith(matrix.os, 'windows')
+        if: startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'macos')
         run: |
           git config --global core.autocrlf input
           git config --global core.eol lf
@@ -132,6 +143,46 @@ jobs:
           echo CC=gcc-10 >> $GITHUB_ENV
           echo CXX=g++-10 >> $GITHUB_ENV
 
+      - name: GCC 11 on Mac OS
+        if: startsWith(matrix.os, 'macos')
+        shell: bash
+        run: |
+          echo CC=gcc-11 >> $GITHUB_ENV
+          echo CXX=g++-11 >> $GITHUB_ENV
+
+      - name: Mac OS deployment target
+        if: startsWith(matrix.os, 'macos')
+        shell: bash
+        run: |
+          echo MACOSX_DEPLOYMENT_TARGET=12.4 >> $GITHUB_ENV
+
+      - name: Mac OS ARCHFLAGS x86_64
+        if: startsWith(matrix.os, 'macos') && endsWith(matrix.wheel, '_x86_64')
+        shell: bash
+        run: |
+          set -ex
+          # This is for libyang and libyang-cpp which are directly built via cmake
+          echo EXTRA_OSX_ARCH=-DCMAKE_OSX_ARCHITECTURES=x86_64 >> $GITHUB_ENV
+          # Ensure that our setuptools extension knows what to pass to cmake
+          echo ARCHFLAGS="-arch x86_64" >> $GITHUB_ENV
+          # Correct platform tag in the wheel
+          # https://github.com/pypa/setuptools/issues/2520
+          # https://github.com/pypa/wheel/issues/406
+          # sed:
+          # - version needs replacing the underscore by a dot
+          # - then replace these underscores around the version with a minus
+          # - but don't replace the underscore in "x86_64"
+          # - and of course this is a Mac, so there's this FreeBSD-5.0-ish sed, not the GNU one
+          echo _PYTHON_HOST_PLATFORM=$(echo ${{ matrix.wheel }} | sed -E 's/(macosx)_([[:digit:]]+)_([[:digit:]]+)_/\1-\2.\3-/') >> $GITHUB_ENV
+
+      - name: Mac OS ARCHFLAGS arm64
+        if: startsWith(matrix.os, 'macos') && endsWith(matrix.wheel, '_arm64')
+        shell: bash
+        run: |
+          echo EXTRA_OSX_ARCH=-DCMAKE_OSX_ARCHITECTURES=arm64 >> $GITHUB_ENV
+          echo ARCHFLAGS="-arch arm64" >> $GITHUB_ENV
+          echo _PYTHON_HOST_PLATFORM=$(echo ${{ matrix.wheel }} | sed -E 's/(macosx)_([[:digit:]]+)_([[:digit:]]+)_/\1-\2.\3-/') >> $GITHUB_ENV
+
       - name: Configure Linux paths
         if: startsWith(matrix.os, 'ubuntu')
         shell: bash
@@ -139,6 +190,14 @@ jobs:
           realpath -m ${{ github.workspace }}/../target/bin >> $GITHUB_PATH
           echo LD_LIBRARY_PATH=$(realpath -m ${{ github.workspace }}/../target/lib):$(realpath -m ${{ github.workspace }}/../target/lib64) >> $GITHUB_ENV
           echo PKG_CONFIG_PATH="$(realpath -m ${{ github.workspace }}/../target)/lib/pkgconfig" >> $GITHUB_ENV
+
+      - name: Configure Mac OS paths
+        if: startsWith(matrix.os, 'macos')
+        shell: bash
+        run: |
+          echo ${{ github.workspace }}/../target/bin >> $GITHUB_PATH
+          echo REPAIR_LIBRARY_PATH=${{ github.workspace }}/../target/lib >> $GITHUB_ENV
+          echo PKG_CONFIG_PATH=${{ github.workspace }}/../target/lib/pkgconfig >> $GITHUB_ENV
 
       - name: Install Windows dependencies
         if: >
@@ -149,6 +208,10 @@ jobs:
       - name: Install Linux dependencies
         if: startsWith(matrix.os, 'ubuntu')
         run: sudo apt install -y libpcre2-dev libcmocka-dev doctest-dev pybind11-dev ninja-build
+
+      - name: Install macOS dependencies
+        if: startsWith(matrix.os, 'macos')
+        run: brew install pcre2 cmocka doctest pybind11 ninja
 
       - name: Fix pybind on the oldest Ubuntu
         if: startsWith(matrix.os, 'ubuntu-20')
@@ -166,6 +229,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             ${EXTRA_VCPKG_TARGET_TRIPLET:+${EXTRA_VCPKG_TARGET_TRIPLET}} \
             ${EXTRA_CMAKE_TOOLCHAIN_FILE:+${EXTRA_CMAKE_TOOLCHAIN_FILE}} \
+            ${EXTRA_OSX_ARCH:+${EXTRA_OSX_ARCH}} \
             -DENABLE_TESTS=ON \
             -DCMAKE_INSTALL_PREFIX:PATH='${{ github.workspace }}/'../target
 
@@ -195,6 +259,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             ${EXTRA_VCPKG_TARGET_TRIPLET:+${EXTRA_VCPKG_TARGET_TRIPLET}} \
             ${EXTRA_CMAKE_TOOLCHAIN_FILE:+${EXTRA_CMAKE_TOOLCHAIN_FILE}} \
+            ${EXTRA_OSX_ARCH:+${EXTRA_OSX_ARCH}} \
             ${EXTRA_PKG_CONFIG_EXECUTABLE:+${EXTRA_PKG_CONFIG_EXECUTABLE}} \
             -DCMAKE_PREFIX_PATH:PATH=${GITHUB_WORKSPACE//\\//}/../target \
             -DCMAKE_INSTALL_PREFIX:PATH='${{ github.workspace }}/'../target
@@ -229,6 +294,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             ${EXTRA_VCPKG_TARGET_TRIPLET:+${EXTRA_VCPKG_TARGET_TRIPLET}} \
             ${EXTRA_CMAKE_TOOLCHAIN_FILE:+${EXTRA_CMAKE_TOOLCHAIN_FILE}} \
+            ${EXTRA_OSX_ARCH:+${EXTRA_OSX_ARCH}} \
             ${EXTRA_PKG_CONFIG_EXECUTABLE:+${EXTRA_PKG_CONFIG_EXECUTABLE}} \
             -DCMAKE_PREFIX_PATH:PATH=${GITHUB_WORKSPACE//\\//}/../target \
             -DCMAKE_INSTALL_PREFIX:PATH='${{ github.workspace }}/'../target
@@ -284,6 +350,15 @@ jobs:
           delvewheel show '${{ github.workspace }}'/build-wheel/*.whl
           delvewheel repair '${{ github.workspace }}'/build-wheel/*.whl
 
+      - name: fix the wheel, Mac OS
+        if: startsWith(matrix.os, 'macos')
+        shell: bash
+        run: |
+          pip install delocate
+          DYLD_LIBRARY_PATH=${REPAIR_LIBRARY_PATH} delocate-listdeps --all '${{ github.workspace }}'/build-wheel/*.whl
+          DYLD_LIBRARY_PATH=${REPAIR_LIBRARY_PATH} delocate-wheel -w ${{ github.workspace }}/wheelhouse -v '${{ github.workspace }}'/build-wheel/*.whl
+          # https://github.com/pypa/cibuildwheel/blob/main/docs/faq.md#macos-passing-dyld_library_path-to-delocate
+
       - name: upload the wheel
         if: matrix.wheel
         uses: actions/upload-artifact@v3
@@ -335,9 +410,14 @@ jobs:
             wheel: win_amd64
             python-version: "3.10"
 
+          - name: "macOS 12 x86_64 Python 3.10"
+            os: macos-12
+            wheel: macosx_12_0_x86_64
+            python-version: "3.10"
+
     steps:
       - name: Unix line endings in git
-        if: startsWith(matrix.os, 'windows')
+        if: startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'macos')
         run: |
           git config --global core.autocrlf input
           git config --global core.eol lf
