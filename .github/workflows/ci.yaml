@@ -291,6 +291,7 @@ jobs:
           name: 'wheel-${{ matrix.wheel }}-${{ matrix.python-version }}'
           path: |
             ${{ github.workspace }}/wheelhouse/*.whl
+          if-no-files-found: error
 
       - name: upload the sdist
         if: matrix.upload-sdist
@@ -299,6 +300,7 @@ jobs:
           name: sdist
           path: |
             ${{ github.workspace }}/build-wheel/*.tar.gz
+          if-no-files-found: error
 
   test:
     needs: build
