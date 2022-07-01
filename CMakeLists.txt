@@ -17,7 +17,8 @@ if(NOT MSVC)
 endif()
 
 find_package(PkgConfig)
-pkg_check_modules(LIBYANG-CPP REQUIRED libyang-cpp>=1.0.0 IMPORTED_TARGET)
+pkg_check_modules(LIBYANG-CPP REQUIRED IMPORTED_TARGET libyang-cpp>=1.0.0)
+
 set(PYBIND11_FINDPYTHON ON)
 find_package(Python COMPONENTS Interpreter Development.Module)
 find_package(pybind11 2.9.1 REQUIRED)
