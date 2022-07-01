@@ -20,8 +20,9 @@ find_package(PkgConfig)
 pkg_check_modules(LIBYANG-CPP REQUIRED IMPORTED_TARGET libyang-cpp>=1.0.0)
 
 set(PYBIND11_FINDPYTHON ON)
-find_package(Python COMPONENTS Interpreter Development.Module)
-find_package(pybind11 2.9.1 REQUIRED)
+find_package(Python 3.8 REQUIRED COMPONENTS Interpreter Development.Module)
+find_package(pybind11 2.9.1 REQUIRED CONFIG)
+message(STATUS "Using Python ${Python_VERSION}")
 
 pybind11_add_module(oopt_gnpy_libyang ${CMAKE_CURRENT_SOURCE_DIR}/oopt-gnpy-libyang.cpp)
 target_link_libraries(oopt_gnpy_libyang PRIVATE PkgConfig::LIBYANG-CPP)
