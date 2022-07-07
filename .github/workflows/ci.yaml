@@ -421,12 +421,6 @@ jobs:
             python-version: "3.10"
 
     steps:
-      - name: Unix line endings in git
-        if: startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'macos')
-        run: |
-          git config --global core.autocrlf input
-          git config --global core.eol lf
-
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
