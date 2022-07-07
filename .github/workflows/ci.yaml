@@ -410,6 +410,11 @@ jobs:
             wheel: win_amd64
             python-version: "3.10"
 
+          - name: "Windows 2019 MSVC Python 3.10"
+            os: windows-2019
+            wheel: win_amd64
+            python-version: "3.10"
+
           - name: "macOS 12 x86_64 Python 3.10"
             os: macos-12
             wheel: macosx_12_0_x86_64
