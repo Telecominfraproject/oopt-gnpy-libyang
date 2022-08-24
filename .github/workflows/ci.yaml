@@ -175,6 +175,8 @@ jobs:
           # - but don't replace the underscore in "x86_64"
           # - and of course this is a Mac, so there's this FreeBSD-5.0-ish sed, not the GNU one
           echo _PYTHON_HOST_PLATFORM=$(echo ${{ matrix.wheel }} | sed -E 's/(macosx)_([[:digit:]]+)_([[:digit:]]+)_/\1-\2.\3-/') >> $GITHUB_ENV
+          # https://github.com/CESNET/libyang/pull/1902
+          echo EXTRA_OSX_LIBYANG=-DPATH_EXPECT= >> $GITHUB_ENV
 
       - name: Mac OS ARCHFLAGS arm64
         if: startsWith(matrix.os, 'macos') && endsWith(matrix.wheel, '_arm64')
@@ -231,6 +233,7 @@ jobs:
             ${EXTRA_VCPKG_TARGET_TRIPLET:+${EXTRA_VCPKG_TARGET_TRIPLET}} \
             ${EXTRA_CMAKE_TOOLCHAIN_FILE:+${EXTRA_CMAKE_TOOLCHAIN_FILE}} \
             ${EXTRA_OSX_ARCH:+${EXTRA_OSX_ARCH}} \
+            ${EXTRA_OSX_LIBYANG:+${EXTRA_OSX_LIBYANG}} \
             -DENABLE_TESTS=ON \
             -DCMAKE_INSTALL_PREFIX:PATH='${{ github.workspace }}/'../target
 
