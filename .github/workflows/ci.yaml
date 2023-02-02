@@ -338,7 +338,8 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu-20')
         shell: bash
         run: |
-          pip install auditwheel
+          # we're on old Ubuntu to use an old manylinux tag, and newer auditwheel requires too fresh patchelf
+          pip install 'auditwheel<5.2.0'
           find '${{ github.workspace }}'/build-wheel -name '*.whl'
           auditwheel repair --plat '${{ matrix.wheel }}' '${{ github.workspace }}'/build-wheel/*.whl
 
