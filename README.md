@@ -2,7 +2,7 @@
 
 [![Install via pip](https://img.shields.io/pypi/v/oopt-gnpy-libyang)](https://pypi.org/project/oopt-gnpy-libyang/)
 [![Python versions](https://img.shields.io/pypi/pyversions/oopt-gnpy-libyang)](https://pypi.org/project/oopt-gnpy-libyang/)
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Telecominfraproject/oopt-gnpy-libyang/CI)](https://github.com/Telecominfraproject/oopt-gnpy-libyang/actions/workflows/ci.yaml)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Telecominfraproject/oopt-gnpy-libyang/ci.yaml)](https://github.com/Telecominfraproject/oopt-gnpy-libyang/actions/workflows/ci.yaml)
 
 Python bindings and packaging of [`libyang`](https://github.com/CESNET/libyang).
 We're focusing on parsing, validating and accessing YANG-modeled JSON data trees.
