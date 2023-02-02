@@ -79,14 +79,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: change vcpkg
-        if: startsWith(matrix.os, 'windows')
-        shell: bash
-        run: |
-          cd ${VCPKG_INSTALLATION_ROOT//\\//}
-          git remote add --fetch jkt https://github.com/jktjkt/vcpkg.git
-          git reset --hard jkt/pybind11
-
       - name: Extract VCPKG version
         if: startsWith(matrix.os, 'windows')
         id: extract-vcpkg-version
