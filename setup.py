@@ -132,7 +132,7 @@ setup(
     python_requires=">=3.8",
     license='BSD-3-Clause',
     download_url='https://pypi.org/project/oopt-gnpy-libyang/',
-    classifiers=(
+    classifiers=[
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'Intended Audience :: Telecommunications Industry',
@@ -144,5 +144,5 @@ setup(
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: System :: Networking',
-    ),
+    ],
 )
