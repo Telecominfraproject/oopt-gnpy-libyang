@@ -121,6 +121,15 @@ jobs:
           echo EXTRA_CMAKE_TOOLCHAIN_FILE=-DCMAKE_TOOLCHAIN_FILE=${VCPKG_INSTALLATION_ROOT//\\//}/scripts/buildsystems/vcpkg.cmake >> $GITHUB_ENV
           echo EXTRA_PKG_CONFIG_EXECUTABLE=-DPKG_CONFIG_EXECUTABLE=${VCPKG_INSTALLATION_ROOT//\\//}/installed/${{ matrix.triplet }}/tools/pkgconf/pkgconf.exe >> $GITHUB_ENV
           echo PKG_CONFIG_PATH="${VCPKG_INSTALLATION_ROOT//\\//}/installed/${{ matrix.triplet }}/lib/pkgconfig;${GITHUB_WORKSPACE//\\//}/../target/lib/pkgconfig" >> $GITHUB_ENV
+          echo TMPDIR=C:\\t >> $GITHUB_ENV
+          echo TEMP=C:\\t >> $GITHUB_ENV
+          echo TMP=C:\\t >> $GITHUB_ENV
+
+      - name: Prepare Windows temp
+        if: startsWith(matrix.os, 'windows')
+        shell: bash
+        run: |
+          mkdir -p ${TMPDIR//\\//}
 
       - name: Configure Windows CXXFLAGS
         if: startsWith(matrix.os, 'windows')
