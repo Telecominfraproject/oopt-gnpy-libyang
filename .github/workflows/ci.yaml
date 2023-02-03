@@ -17,6 +17,13 @@ jobs:
             build_type: Release
             generators: Ninja
             python-version: "3.10"
+
+          - name: "Ubuntu 22.04 Python 3.11"
+            os: ubuntu-22.04
+            build_type: Release
+            generators: Ninja
+            wheel: manylinux_2_35_x86_64
+            python-version: "3.11"
             upload-sdist: true
 
           - name: "Ubuntu 20.04 with GCC 10 Python 3.8"
@@ -48,12 +55,27 @@ jobs:
             wheel: win_amd64
             python-version: "3.10"
 
+          - name: "Windows 2022 MSVC Python 3.11"
+            os: windows-2022
+            triplet: x64-windows
+            build_type: Release
+            generators: "Visual Studio 17 2022"
+            wheel: win_amd64
+            python-version: "3.11"
+
           - name: "macOS 12 x86_64 Python 3.10"
             os: macos-12
             build_type: Release
             generators: Ninja
             wheel: macosx_12_0_x86_64
             python-version: "3.10"
+
+          - name: "macOS 12 x86_64 Python 3.11"
+            os: macos-12
+            build_type: Release
+            generators: Ninja
+            wheel: macosx_12_0_x86_64
+            python-version: "3.11"
 
           # Apple LLVM doesn't fully support C++20 (hi std::string::operator<=>),
           # so we require GCC, but the prebuilt GCC on GitHub Actions virtual environment
@@ -344,8 +366,8 @@ jobs:
           export CMAKE_ARGS="${EXTRA_VCPKG_TARGET_TRIPLET:+${EXTRA_VCPKG_TARGET_TRIPLET} }${EXTRA_CMAKE_TOOLCHAIN_FILE:+${EXTRA_CMAKE_TOOLCHAIN_FILE} }${EXTRA_PKG_CONFIG_EXECUTABLE:+${EXTRA_PKG_CONFIG_EXECUTABLE}}"
           python3 -m build --skip-dependency-check --outdir '${{ github.workspace }}'/build-wheel '${{ github.workspace }}/'
 
-      - name: fix the wheel, oldest Ubuntu
-        if: startsWith(matrix.os, 'ubuntu-20')
+      - name: fix the wheel, Ubuntu 20.x
+        if: startsWith(matrix.os, 'ubuntu-20') && (matrix.wheel != '')
         shell: bash
         run: |
           # we're on old Ubuntu to use an old manylinux tag, and newer auditwheel requires too fresh patchelf
@@ -353,8 +375,16 @@ jobs:
           find '${{ github.workspace }}'/build-wheel -name '*.whl'
           auditwheel repair --plat '${{ matrix.wheel }}' '${{ github.workspace }}'/build-wheel/*.whl
 
+      - name: fix the wheel, Ubuntu 22.x
+        if: startsWith(matrix.os, 'ubuntu-22') && (matrix.wheel != '')
+        shell: bash
+        run: |
+          pip install auditwheel
+          find '${{ github.workspace }}'/build-wheel -name '*.whl'
+          auditwheel repair --plat '${{ matrix.wheel }}' '${{ github.workspace }}'/build-wheel/*.whl
+
       - name: fix the wheel, Windows
-        if: startsWith(matrix.os, 'windows')
+        if: startsWith(matrix.os, 'windows') && (matrix.wheel != '')
         shell: bash
         run: |
           pip install delvewheel
@@ -362,7 +392,7 @@ jobs:
           delvewheel repair '${{ github.workspace }}'/build-wheel/*.whl
 
       - name: fix the wheel, Mac OS
-        if: startsWith(matrix.os, 'macos')
+        if: startsWith(matrix.os, 'macos') && (matrix.wheel != '')
         shell: bash
         run: |
           pip install delocate
@@ -401,6 +431,11 @@ jobs:
             python-version: "3.10"
             wheel: manylinux_2_31_x86_64
 
+          - name: "Ubuntu 22.04 Python 3.11"
+            os: ubuntu-22.04
+            python-version: "3.11"
+            wheel: manylinux_2_35_x86_64
+
           - name: "Ubuntu 20.04 with GCC 10 Python 3.8"
             os: ubuntu-20.04
             wheel: manylinux_2_31_x86_64
@@ -416,20 +451,30 @@ jobs:
             wheel: manylinux_2_31_x86_64
             python-version: "3.10"
 
-          - name: "Windows 2022 MSVC Python 3.10"
-            os: windows-2022
-            wheel: win_amd64
-            python-version: "3.10"
-
           - name: "Windows 2019 MSVC Python 3.10"
             os: windows-2019
             wheel: win_amd64
             python-version: "3.10"
 
+          - name: "Windows 2022 MSVC Python 3.10"
+            os: windows-2022
+            wheel: win_amd64
+            python-version: "3.10"
+
+          - name: "Windows 2022 MSVC Python 3.11"
+            os: windows-2022
+            wheel: win_amd64
+            python-version: "3.11"
+
           - name: "macOS 12 x86_64 Python 3.10"
             os: macos-12
             wheel: macosx_12_0_x86_64
             python-version: "3.10"
+
+          - name: "macOS 12 x86_64 Python 3.11"
+            os: macos-12
+            wheel: macosx_12_0_x86_64
+            python-version: "3.11"
 
     steps:
       - uses: actions/checkout@v3
