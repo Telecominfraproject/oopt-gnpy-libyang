@@ -66,14 +66,14 @@ jobs:
           git config --global core.autocrlf input
           git config --global core.eol lf
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           submodules: recursive
 
       - name: Get number of CPU cores
         id: cpu-cores
-        uses: SimenB/github-actions-cpu-cores@5e7112c2e8c5b63b649a678bc2fb5920d0c8202e
+        uses: SimenB/github-actions-cpu-cores@410541432439795d30db6501fb1d8178eb41e502
 
       - uses: actions/setup-python@v4
         with:
@@ -414,7 +414,7 @@ jobs:
             python-version: "3.10"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           submodules: recursive
