@@ -107,12 +107,12 @@ jobs:
         shell: bash
         run: |
           cd ${VCPKG_INSTALLATION_ROOT//\\//}
-          echo "::set-output name=VCPKG_PATH::$VCPKG_INSTALLATION_ROOT"
-          echo "::set-output name=VCPKG_COMMIT::$(git rev-parse HEAD)"
+          echo "echo VCPKG_PATH=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_OUTPUT
+          echo "VCPKG_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
           # cd '${{ github.workspace }}/'libyang
-          # echo "::set-output name=LIBYANG_COMMIT::$(git rev-parse HEAD)"
+          # echo "LIBYANG_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
           # cd '${{ github.workspace }}/'libyang-cpp
-          # echo "::set-output name=LIBYANG_CPP_COMMIT::$(git rev-parse HEAD)"
+          # echo "LIBYANG_CPP_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
       # Unfortunately, this is broken due to dlfcn-win32 assuming that "debug" is always there:
       # (the last item at https://github.com/microsoft/vcpkg/issues/6045)
