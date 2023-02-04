@@ -48,6 +48,7 @@ class CMakeBuild(build_ext):
             "-DDONT_WARN_ABOUT_SETUP_PY=ON",
         ]
         build_args = []
+        test_args = []
         # Adding CMake arguments set as environment variable
         # (needed e.g. to build for ARM OSx on conda-forge)
         if "CMAKE_ARGS" in os.environ:
@@ -91,6 +92,7 @@ class CMakeBuild(build_ext):
                     f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{cfg.upper()}={extdir}"
                 ]
                 build_args += ["--config", cfg]
+                test_args += ["--build-config", cfg]
 
         if sys.platform.startswith("darwin"):
             # Cross-compile support for macOS - respect ARCHFLAGS if set
@@ -106,6 +108,7 @@ class CMakeBuild(build_ext):
             if hasattr(self, "parallel") and self.parallel:
                 # CMake 3.12+ only.
                 build_args += [f"-j{self.parallel}"]
+                test_args += [f"-j{self.parallel}"]
 
         build_temp = os.path.join(self.build_temp, ext.name)
         if not os.path.exists(build_temp):
@@ -113,6 +116,7 @@ class CMakeBuild(build_ext):
 
         subprocess.check_call(["cmake", ext.sourcedir] + cmake_args, cwd=build_temp)
         subprocess.check_call(["cmake", "--build", "."] + build_args, cwd=build_temp)
+        subprocess.check_call(["ctest", "--output-on-failure"] + test_args, cwd=build_temp)
 
 
 # The information here can also be placed in setup.cfg - better separation of
@@ -128,7 +132,6 @@ setup(
     ext_modules=[CMakeExtension("oopt_gnpy_libyang")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
-    extras_require={"test": ["pytest>=6.0"]},
     python_requires=">=3.8",
     license='BSD-3-Clause',
     download_url='https://pypi.org/project/oopt-gnpy-libyang/',

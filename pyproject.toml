@@ -5,6 +5,7 @@ requires = [
     "ninja",
     "cmake>=3.21",
     "setuptools_scm[toml]>=6.4.2",
+    "pytest>=6.0",
 ]
 build-backend = "setuptools.build_meta"
 

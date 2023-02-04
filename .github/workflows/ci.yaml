@@ -308,46 +308,8 @@ jobs:
         working-directory: '${{ github.workspace }}/../build-libyang-cpp'
         run: cmake --install . --strip
 
-      - name: quick install pytest for the test suite
-        if: startsWith(matrix.os, 'ubuntu-22')
-        run: pip install pytest
-
-      - name: quick configure oopt-gnpy-libyang
-        if: startsWith(matrix.os, 'ubuntu-22')
-        shell: bash
-        run: |
-          set -ex
-          cmake \
-            -DSHOW_SO_DEPENDENCIES=ON \
-            -DDONT_WARN_ABOUT_SETUP_PY=ON \
-            -S '${{ github.workspace }}/' \
-            -B '${{ github.workspace }}/'../build-oopt-gnpy-libyang \
-            -G '${{ matrix.generators }}' \
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            ${EXTRA_VCPKG_TARGET_TRIPLET:+${EXTRA_VCPKG_TARGET_TRIPLET}} \
-            ${EXTRA_CMAKE_TOOLCHAIN_FILE:+${EXTRA_CMAKE_TOOLCHAIN_FILE}} \
-            ${EXTRA_OSX_ARCH:+${EXTRA_OSX_ARCH}} \
-            ${EXTRA_PKG_CONFIG_EXECUTABLE:+${EXTRA_PKG_CONFIG_EXECUTABLE}} \
-            -DCMAKE_PREFIX_PATH:PATH=${GITHUB_WORKSPACE//\\//}/../target \
-            -DCMAKE_INSTALL_PREFIX:PATH='${{ github.workspace }}/'../target
-
-      - name: quick build oopt-gnpy-libyang
-        if: startsWith(matrix.os, 'ubuntu-22')
-        working-directory: '${{ github.workspace }}/../build-oopt-gnpy-libyang'
-        run: cmake --build . -j${{ steps.cpu-cores.outputs.count }} --config ${{ matrix.build_type }}
-
-      - name: quick install oopt-gnpy-libyang
-        if: startsWith(matrix.os, 'ubuntu-22')
-        working-directory: '${{ github.workspace }}/../build-oopt-gnpy-libyang'
-        run: cmake --install . --strip
-
-      - name: quick test oopt-gnpy-libyang
-        if: startsWith(matrix.os, 'ubuntu-22')
-        working-directory: '${{ github.workspace }}/../build-oopt-gnpy-libyang'
-        run: ctest --output-on-failure -j${{ steps.cpu-cores.outputs.count }} --build-config ${{ matrix.build_type }}
-
       - name: prepare wheel building
-        run: pip install wheel setuptools build setuptools_scm[toml]
+        run: pip install wheel setuptools build setuptools_scm[toml] pytest
 
       - name: show Python version
         run: python --version
