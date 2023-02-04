@@ -107,7 +107,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ steps.extract-vcpkg-version.outputs.VCPKG_PATH }}/installed'
-          key: 'vcpkg-2-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.triplet }}-${{ steps.extract-vcpkg-version.outputs.VCPKG_COMMIT }}'
+          key: 'vcpkg-3-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.triplet }}-${{ steps.extract-vcpkg-version.outputs.VCPKG_COMMIT }}'
 
       - name: Configure Windows PATH
         if: startsWith(matrix.os, 'windows')
@@ -206,21 +206,27 @@ jobs:
         if: >
           startsWith(matrix.os, 'windows') &&
           (steps.cache-vcpkg.outputs.cache-hit != 'true')
-        run: vcpkg install --triplet=${{ matrix.triplet }} pcre2 pthreads dirent dlfcn-win32 cmocka getopt doctest pkgconf pybind11
+        run: vcpkg install --triplet=${{ matrix.triplet }} pcre2 pthreads dirent dlfcn-win32 cmocka getopt doctest pkgconf
 
       - name: Install Linux dependencies
         if: startsWith(matrix.os, 'ubuntu')
-        run: sudo apt install -y libpcre2-dev libcmocka-dev doctest-dev pybind11-dev ninja-build
+        run: sudo apt install -y libpcre2-dev libcmocka-dev doctest-dev ninja-build
 
       - name: Install macOS dependencies
         if: startsWith(matrix.os, 'macos')
-        run: brew install pcre2 cmocka doctest pybind11 ninja
+        run: brew install pcre2 cmocka doctest ninja
 
-      - name: Fix pybind on the oldest Ubuntu
-        if: startsWith(matrix.os, 'ubuntu-20')
-        run: |
-          sudo apt remove -y pybind11-dev
-          sudo pip install pybind11[global]
+      # Ubuntu 20.04: the system pybind11 is too old (unspecified reasons, commit 3a458f23)
+      # Ubuntu 22.04: the system pybind11 doesn't work with non-system Python 3.11:
+      # pybind11/detail/type_caster_base.h:482:26: error: invalid use of incomplete type ‘PyFrameObject’ {aka ‘struct _frame’}
+      # Windows: pybind11 by vcpkg won't work for any other version of Python by design, https://github.com/microsoft/vcpkg/issues/23796
+      - name: Install pybind11 (Unix)
+        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
+        run: sudo pip install pybind11[global]
+
+      - name: Install pybind11 (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: pip install pybind11[global]
 
       - name: configure libyang
         shell: bash
