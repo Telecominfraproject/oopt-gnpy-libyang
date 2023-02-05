@@ -130,5 +130,5 @@ For an inspiration, consult our [GitHub packaging recipes](./.github/workflows/c
 
 ## License
 
-Copyright © 2021-2022 Telecom Infra Project and GNPy contributors.
+Copyright © 2021-2023 Telecom Infra Project and GNPy contributors.
 Licensed under the [3-clause BSD license](LICENSE).
