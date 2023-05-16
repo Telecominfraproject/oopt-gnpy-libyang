@@ -55,7 +55,7 @@ blob = '''{
   }
 }'''
 
-data = c.parse_data_str(blob,
+data = c.parse_data(blob,
     ly.DataFormat.JSON, ly.ParseOptions.Strict | ly.ParseOptions.Ordered,
     ly.ValidationOptions.Present | ly.ValidationOptions.NoState)
 ```
@@ -96,7 +96,7 @@ wrong = json.loads(blob)
 wrong["ietf-interfaces:interfaces"]["interface"][0]\
     ["ietf-ip:ipv6"]["address"][0]["prefix-length"] = 666
 try:
-    data = c.parse_data_str(json.dumps(wrong),
+    data = c.parse_data(json.dumps(wrong),
         ly.DataFormat.JSON, ly.ParseOptions.Strict | ly.ParseOptions.Ordered,
         ly.ValidationOptions.Present | ly.ValidationOptions.NoState)
     assert False

@@ -1,6 +1,7 @@
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/stl/filesystem.h>
 #include <libyang-cpp/Context.hpp>
 
 using namespace std::literals;
@@ -175,12 +176,19 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .def("get_module_implemented", &libyang::Context::getModuleImplemented, "name"_a)
         .def("errors", &libyang::Context::getErrors)
         .def("clean_all_errors", &libyang::Context::cleanAllErrors)
-        .def("parse_data_str", &libyang::Context::parseDataMem, "data"_a, "format"_a, "parse_options"_a=std::nullopt, "validation_options"_a=std::nullopt)
+        .def("parse_data",
+                pybind11::overload_cast<const std::string&, const libyang::DataFormat, const std::optional<libyang::ParseOptions>,
+                    const std::optional<libyang::ValidationOptions>>(&libyang::Context::parseData, pybind11::const_),
+                "data"_a, "format"_a, "parse_options"_a=std::nullopt, "validation_options"_a=std::nullopt)
+        .def("parse_data",
+                pybind11::overload_cast<const std::filesystem::path&, const libyang::DataFormat, const std::optional<libyang::ParseOptions>,
+                    const std::optional<libyang::ValidationOptions>>(&libyang::Context::parseData, pybind11::const_),
+                "path"_a, "format"_a, "parse_options"_a=std::nullopt, "validation_options"_a=std::nullopt)
 
         // is this actually needed? looks like parseDataMem() does that just fine
         /* .def("validate_data_str", */
         /*         [](const libyang::Context& ctx, const std::string& data, const libyang::DataFormat format, const libyang::ParseOptions parseOptions, const libyang::ValidationOptions validationOptions) { */
-        /*             auto x = ctx.parseDataMem(data, format, parseOptions, validationOptions); */
+        /*             auto x = ctx.parseData(data, format, parseOptions, validationOptions); */
         /*             libyang::validateAll(x, validationOptions); */
         /*             return x; */
         /*         }, */

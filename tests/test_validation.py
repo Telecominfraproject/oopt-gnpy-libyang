@@ -69,7 +69,7 @@ def test_ietf_interfaces(context_with_modules):
   }
 }
     '''
-    data = context_with_modules.parse_data_str(blob, ly.DataFormat.JSON, ly.ParseOptions.Strict | ly.ParseOptions.Ordered, ly.ValidationOptions.Present | ly.ValidationOptions.NoState)
+    data = context_with_modules.parse_data(blob, ly.DataFormat.JSON, ly.ParseOptions.Strict | ly.ParseOptions.Ordered, ly.ValidationOptions.Present | ly.ValidationOptions.NoState)
     assert data.path == '/ietf-interfaces:interfaces'
 
     assert [x.path for x in data.siblings()] == ['/ietf-interfaces:interfaces', '/ietf-hardware:hardware']
