@@ -186,14 +186,5 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
                 py::overload_cast<const std::filesystem::path&, const DataFormat, const std::optional<ParseOptions>,
                     const std::optional<ValidationOptions>>(&Context::parseData, py::const_),
                 "path"_a, "format"_a, "parse_options"_a=std::nullopt, "validation_options"_a=std::nullopt)
-
-        // is this actually needed? looks like parseDataMem() does that just fine
-        /* .def("validate_data_str", */
-        /*         [](const Context& ctx, const std::string& data, const DataFormat format, const ParseOptions parseOptions, const ValidationOptions validationOptions) { */
-        /*             auto x = ctx.parseData(data, format, parseOptions, validationOptions); */
-        /*             validateAll(x, validationOptions); */
-        /*             return x; */
-        /*         }, */
-        /*         "data"_a, "format"_a=DataFormat::Auto, "parse_options"_a=std::nullopt, "validation_options"_a=std::nullopt) */
         ;
 }
