@@ -7,11 +7,12 @@
 using namespace std::literals;
 using namespace pybind11::literals;
 using namespace libyang;
+namespace py = pybind11;
 
 PYBIND11_MODULE(oopt_gnpy_libyang, m) {
     m.doc() = "Opinionated Python bindings for the libyang library";
 
-    pybind11::enum_<ContextOptions>(m, "ContextOptions")
+    py::enum_<ContextOptions>(m, "ContextOptions")
         .value("AllImplemented", ContextOptions::AllImplemented)
         .value("RefImplemented", ContextOptions::RefImplemented)
         .value("NoYangLibrary", ContextOptions::NoYangLibrary)
@@ -23,14 +24,14 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .def("__or__", [](ContextOptions a, ContextOptions b){ return a | b; })
         ;
 
-    pybind11::enum_<LogLevel>(m, "LogLevel")
+    py::enum_<LogLevel>(m, "LogLevel")
         .value("Error", LogLevel::Error)
         .value("Warning", LogLevel::Warning)
         .value("Verbose", LogLevel::Verbose)
         .value("Debug", LogLevel::Debug)
         ;
 
-    pybind11::enum_<ErrorCode>(m, "ErrorCode")
+    py::enum_<ErrorCode>(m, "ErrorCode")
         .value("Success", ErrorCode::Success)
         .value("MemoryFailure", ErrorCode::MemoryFailure)
         .value("SyscallFail", ErrorCode::SyscallFail)
@@ -47,7 +48,7 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .value("PluginError", ErrorCode::PluginError)
         ;
 
-    pybind11::enum_<ValidationErrorCode>(m, "ValidationErrorCode")
+    py::enum_<ValidationErrorCode>(m, "ValidationErrorCode")
         .value("Success", ValidationErrorCode::Success)
         .value("Syntax", ValidationErrorCode::Syntax)
         .value("YangSyntax", ValidationErrorCode::YangSyntax)
@@ -61,13 +62,13 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .value("Other", ValidationErrorCode::Other)
         ;
 
-    pybind11::enum_<DataFormat>(m, "DataFormat")
+    py::enum_<DataFormat>(m, "DataFormat")
         .value("Detect", DataFormat::Detect)
         .value("JSON", DataFormat::JSON)
         .value("XML", DataFormat::XML)
         ;
 
-    pybind11::enum_<ParseOptions>(m, "ParseOptions")
+    py::enum_<ParseOptions>(m, "ParseOptions")
         .value("ParseOnly", ParseOptions::ParseOnly)
         .value("Strict", ParseOptions::Strict)
         .value("Opaque", ParseOptions::Opaque)
@@ -77,13 +78,13 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .def("__or__", [](ParseOptions a, ParseOptions b){ return a | b; })
         ;
 
-    pybind11::enum_<ValidationOptions>(m, "ValidationOptions")
+    py::enum_<ValidationOptions>(m, "ValidationOptions")
         .value("NoState", ValidationOptions::NoState)
         .value("Present", ValidationOptions::Present)
         .def("__or__", [](ValidationOptions a, ValidationOptions b){ return a | b; })
         ;
 
-    pybind11::enum_<PrintFlags>(m, "PrintFlags")
+    py::enum_<PrintFlags>(m, "PrintFlags")
         .value("WithDefaultsExplicit", PrintFlags::WithDefaultsExplicit)
         .value("WithSiblings", PrintFlags::WithSiblings)
         .value("Shrink", PrintFlags::Shrink)
@@ -96,16 +97,16 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .def("__or__", [](PrintFlags a, PrintFlags b){ return a | b; })
         ;
 
-    auto eError = pybind11::register_local_exception<Error>(m, "Error", PyExc_RuntimeError);
-    pybind11::register_local_exception<ErrorWithCode>(m, "ErrorWithCode", eError);
+    auto eError = py::register_local_exception<Error>(m, "Error", PyExc_RuntimeError);
+    py::register_local_exception<ErrorWithCode>(m, "ErrorWithCode", eError);
         /* FIXME: cannot do .def_property("code", &ErrorWithCode::code, nullptr) */
-    pybind11::register_local_exception<ParsedInfoUnavailable>(m, "ParsedInfoUnavailable", eError);
+    py::register_local_exception<ParsedInfoUnavailable>(m, "ParsedInfoUnavailable", eError);
 
-    pybind11::class_<Feature>(m, "Feature")
+    py::class_<Feature>(m, "Feature")
         .def_property("name", &Feature::name, nullptr)
         ;
 
-    pybind11::class_<Module>(m, "Module")
+    py::class_<Module>(m, "Module")
         .def_property("name", &Module::name, nullptr)
         .def_property("revision", &Module::revision, nullptr)
         .def_property("implemented", &Module::implemented, nullptr)
@@ -118,7 +119,7 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         // FIXME: childInstantiables
         ;
 
-    pybind11::class_<ErrorInfo>(m, "ErrorInfo")
+    py::class_<ErrorInfo>(m, "ErrorInfo")
         .def_readonly("app_tag", &ErrorInfo::appTag)
         .def_readonly("level", &ErrorInfo::level)
         .def_readonly("message", &ErrorInfo::message)
@@ -127,7 +128,7 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .def_readonly("validation_code", &ErrorInfo::validationCode)
         ;
 
-    pybind11::class_<DataNode>(m, "DataNode")
+    py::class_<DataNode>(m, "DataNode")
         .def_property("path", &DataNode::path, nullptr)
         .def_property("is_term", &DataNode::isTerm, nullptr)
         .def("as_term", &DataNode::asTerm)
@@ -140,37 +141,37 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
                 [](const DataNode& node, const std::string& key) {
                     auto set = node.findXPath(key);
                     if (set.empty()) {
-                        throw pybind11::key_error{"No such data node below '" + node.path() + "' for '" + key + "'"};
+                        throw py::key_error{"No such data node below '" + node.path() + "' for '" + key + "'"};
                     } else if (set.size() > 1) {
-                        throw pybind11::key_error{"Too many nodes below '" + node.path() + "' for '" + key + "'"};
+                        throw py::key_error{"Too many nodes below '" + node.path() + "' for '" + key + "'"};
                     } else {
                         return *set.begin();
                     }
                 })
         ;
 
-    pybind11::class_<DataNodeTerm, DataNode>(m, "DataNodeTerm")
+    py::class_<DataNodeTerm, DataNode>(m, "DataNodeTerm")
         .def_property("is_default_value", &DataNodeTerm::isDefaultValue, nullptr)
         .def_property("value", &DataNodeTerm::value, nullptr)
         .def("__str__", &DataNodeTerm::valueStr)
         ;
 
     using Collection_DataNode_Siblings = Collection<DataNode, IterationType::Sibling>;
-    pybind11::class_<Collection_DataNode_Siblings>(m, "_Collection_DataNode_Siblings")
+    py::class_<Collection_DataNode_Siblings>(m, "_Collection_DataNode_Siblings")
         .def("__iter__",
-            [](const Collection_DataNode_Siblings &s) { return pybind11::make_iterator(s.begin(), s.end()); },
-            pybind11::keep_alive<0, 1>())
+            [](const Collection_DataNode_Siblings &s) { return py::make_iterator(s.begin(), s.end()); },
+            py::keep_alive<0, 1>())
         ;
 
     using Collection_DataNode_Dfs = Collection<DataNode, IterationType::Dfs>;
-    pybind11::class_<Collection_DataNode_Dfs>(m, "_Collection_DataNode_Dfs")
+    py::class_<Collection_DataNode_Dfs>(m, "_Collection_DataNode_Dfs")
         .def("__iter__",
-            [](const Collection_DataNode_Dfs &s) { return pybind11::make_iterator(s.begin(), s.end()); },
-            pybind11::keep_alive<0, 1>())
+            [](const Collection_DataNode_Dfs &s) { return py::make_iterator(s.begin(), s.end()); },
+            py::keep_alive<0, 1>())
         ;
 
-    pybind11::class_<Context>(m, "Context")
-        .def(pybind11::init<const std::optional<std::string>&, const std::optional<ContextOptions>>(), "searchPath"_a=std::nullopt, "options"_a=std::nullopt)
+    py::class_<Context>(m, "Context")
+        .def(py::init<const std::optional<std::string>&, const std::optional<ContextOptions>>(), "searchPath"_a=std::nullopt, "options"_a=std::nullopt)
         .def("load_module", &Context::loadModule, "name"_a, "revision"_a=std::nullopt, "features"_a=std::vector<std::string>{})
         .def("modules", &Context::modules)
         .def("get_module", &Context::getModule, "name"_a, "revision"_a=std::nullopt)
@@ -178,12 +179,12 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .def("errors", &Context::getErrors)
         .def("clean_all_errors", &Context::cleanAllErrors)
         .def("parse_data",
-                pybind11::overload_cast<const std::string&, const DataFormat, const std::optional<ParseOptions>,
-                    const std::optional<ValidationOptions>>(&Context::parseData, pybind11::const_),
+                py::overload_cast<const std::string&, const DataFormat, const std::optional<ParseOptions>,
+                    const std::optional<ValidationOptions>>(&Context::parseData, py::const_),
                 "data"_a, "format"_a, "parse_options"_a=std::nullopt, "validation_options"_a=std::nullopt)
         .def("parse_data",
-                pybind11::overload_cast<const std::filesystem::path&, const DataFormat, const std::optional<ParseOptions>,
-                    const std::optional<ValidationOptions>>(&Context::parseData, pybind11::const_),
+                py::overload_cast<const std::filesystem::path&, const DataFormat, const std::optional<ParseOptions>,
+                    const std::optional<ValidationOptions>>(&Context::parseData, py::const_),
                 "path"_a, "format"_a, "parse_options"_a=std::nullopt, "validation_options"_a=std::nullopt)
 
         // is this actually needed? looks like parseDataMem() does that just fine
