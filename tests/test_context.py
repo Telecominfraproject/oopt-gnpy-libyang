@@ -1,5 +1,6 @@
 import pytest
 import oopt_gnpy_libyang as ly
+from pathlib import Path
 
 def test_no_module(context_no_libyang):
     with pytest.raises(ly.Error, match="Can't load module 'yay'"):
@@ -29,3 +30,12 @@ def test_features(context_no_libyang):
 
 def test_no_shared_errors(context_no_libyang):
     assert context_no_libyang.errors() == []
+
+def test_explicit_loading(context_no_libyang):
+    TEST_ROOT = Path(__file__).parent
+    with pytest.raises(ly.Error, match="Can't parse module: LY_ESYS"):
+        context_no_libyang.parse_module(TEST_ROOT / 'no-such-path.yang', ly.SchemaFormat.YANG)
+    m1 = context_no_libyang.parse_module(TEST_ROOT / 'yang' / 'iana-if-type@2017-01-19.yang', ly.SchemaFormat.YANG)
+    assert m1.name == 'iana-if-type'
+    m2 = context_no_libyang.parse_module((TEST_ROOT / 'yang' / 'iana-hardware@2018-03-13.yang').read_text(), ly.SchemaFormat.YANG)
+    assert m2.name == 'iana-hardware'

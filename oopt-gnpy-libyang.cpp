@@ -97,6 +97,11 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .def("__or__", [](PrintFlags a, PrintFlags b){ return a | b; })
         ;
 
+    py::enum_<SchemaFormat>(m, "SchemaFormat")
+        .value("YANG", SchemaFormat::YANG)
+        .value("YIN", SchemaFormat::YIN)
+        ;
+
     auto eError = py::register_local_exception<Error>(m, "Error", PyExc_RuntimeError);
     py::register_local_exception<ErrorWithCode>(m, "ErrorWithCode", eError);
         /* FIXME: cannot do .def_property("code", &ErrorWithCode::code, nullptr) */
@@ -186,5 +191,11 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
                 py::overload_cast<const std::filesystem::path&, const DataFormat, const std::optional<ParseOptions>,
                     const std::optional<ValidationOptions>>(&Context::parseData, py::const_),
                 "path"_a, "format"_a, "parse_options"_a=std::nullopt, "validation_options"_a=std::nullopt)
+        .def("parse_module",
+                py::overload_cast<const std::string&, const SchemaFormat>(&Context::parseModule, py::const_),
+                "data"_a, "format"_a)
+        .def("parse_module",
+                py::overload_cast<const std::filesystem::path&, const SchemaFormat>(&Context::parseModule, py::const_),
+                "path"_a, "format"_a)
         ;
 }
