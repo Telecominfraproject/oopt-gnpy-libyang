@@ -3,6 +3,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/stl/filesystem.h>
 #include <libyang-cpp/Context.hpp>
+#include <libyang/version.h>
 
 using namespace std::literals;
 using namespace pybind11::literals;
@@ -198,4 +199,7 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
                 py::overload_cast<const std::filesystem::path&, const SchemaFormat>(&Context::parseModule, py::const_),
                 "path"_a, "format"_a)
         ;
+
+    m.def("libyang_version", []() { return LY_VERSION; });
+    m.def("libyang_version_info", []() { return py::make_tuple(LY_VERSION_MAJOR, LY_VERSION_MINOR, LY_VERSION_MICRO); });
 }

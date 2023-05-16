@@ -39,3 +39,8 @@ def test_explicit_loading(context_no_libyang):
     assert m1.name == 'iana-if-type'
     m2 = context_no_libyang.parse_module((TEST_ROOT / 'yang' / 'iana-hardware@2018-03-13.yang').read_text(), ly.SchemaFormat.YANG)
     assert m2.name == 'iana-hardware'
+
+def test_version():
+    assert len(ly.libyang_version_info()) == 3
+    assert ly.libyang_version_info()[0] == 2
+    assert ly.libyang_version()[0:2] == '2.'
