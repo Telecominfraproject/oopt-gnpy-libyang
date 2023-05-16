@@ -111,9 +111,9 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .def_property("revision", &Module::revision, nullptr)
         .def_property("implemented", &Module::implemented, nullptr)
         .def_property("features", &Module::features, nullptr)
-        .def("set_implemented", static_cast<void (Module::*)()>(&Module::setImplemented))
+        .def("set_implemented", py::overload_cast<>(&Module::setImplemented))
         .def("feature_enabled", &Module::featureEnabled)
-        .def("set_implemented_with_features", static_cast<void (Module::*)(std::vector<std::string>)>(&Module::setImplemented), "features"_a)
+        .def("set_implemented_with_features", py::overload_cast<std::vector<std::string>>(&Module::setImplemented), "features"_a)
         .def("set_implemented_all_features", [](Module& mod) { mod.setImplemented(AllFeatures{}); })
         // FIXME: identities
         // FIXME: childInstantiables
