@@ -76,12 +76,18 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .value("NoState", ParseOptions::NoState)
         .value("LybModUpdate", ParseOptions::LybModUpdate)
         .value("Ordered", ParseOptions::Ordered)
+        .value("Subtree", ParseOptions::Subtree)
+        .value("WhenTrue", ParseOptions::WhenTrue)
+        .value("NoNew", ParseOptions::NoNew)
         .def("__or__", [](ParseOptions a, ParseOptions b){ return a | b; })
         ;
 
     py::enum_<ValidationOptions>(m, "ValidationOptions")
         .value("NoState", ValidationOptions::NoState)
         .value("Present", ValidationOptions::Present)
+        .value("MultiError", ValidationOptions::MultiError)
+        .value("Operational", ValidationOptions::Operational)
+        .value("NoDefaults", ValidationOptions::NoDefaults)
         .def("__or__", [](ValidationOptions a, ValidationOptions b){ return a | b; })
         ;
 
