@@ -2,6 +2,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/stl/filesystem.h>
+#include <regex>
+#include <sstream>
 #include <libyang-cpp/Context.hpp>
 #include <libyang/version.h>
 
@@ -9,6 +11,23 @@ using namespace std::literals;
 using namespace pybind11::literals;
 using namespace libyang;
 namespace py = pybind11;
+
+namespace {
+std::string quote_string(const std::string& what)
+{
+    return "\"" +
+        std::regex_replace( // escape quotes
+                std::regex_replace( // escape backslashes
+                    what, std::regex("\\\\"), "\\\\"),
+                std::regex("\""), "\\\"")
+        + "\"";
+}
+
+std::string repr_optional_string(const std::optional<std::string>& what)
+{
+    return what ? quote_string(*what) : "None"s;
+}
+}
 
 PYBIND11_MODULE(oopt_gnpy_libyang, m) {
     m.doc() = "Opinionated Python bindings for the libyang library";
@@ -30,6 +49,13 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .value("Warning", LogLevel::Warning)
         .value("Verbose", LogLevel::Verbose)
         .value("Debug", LogLevel::Debug)
+        ;
+
+    py::enum_<LogOptions>(m, "LogOptions")
+        .value("Log", LogOptions::Log)
+        .value("Store", LogOptions::Store)
+        .value("StoreLast", LogOptions::StoreLast)
+        .def("__or__", [](LogOptions a, LogOptions b){ return a | b; })
         ;
 
     py::enum_<ErrorCode>(m, "ErrorCode")
@@ -138,6 +164,18 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .def_readonly("code", &ErrorInfo::code)
         .def_readonly("path", &ErrorInfo::path)
         .def_readonly("validation_code", &ErrorInfo::validationCode)
+        .def("__repr__", [](const ErrorInfo& e) {
+                    std::ostringstream ss;
+                    ss << "ErrorInfo(";
+                    ss << "level = " << e.level;
+                    ss << ", code = " << e.code;
+                    ss << ", validation_code = " << e.validationCode;
+                    ss << ", message = " << repr_optional_string(e.message);
+                    ss << ", path = " << repr_optional_string(e.path);
+                    ss << ", app_tag = " << repr_optional_string(e.appTag);
+                    ss << ")";
+                    return ss.str();
+                })
         ;
 
     py::class_<DataNode>(m, "DataNode")
@@ -208,4 +246,7 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
 
     m.def("libyang_version", []() { return LY_VERSION; });
     m.def("libyang_version_info", []() { return py::make_tuple(LY_VERSION_MAJOR, LY_VERSION_MINOR, LY_VERSION_MICRO); });
+
+    m.def("set_log_level", &setLogLevel, "level"_a);
+    m.def("set_log_options", &setLogOptions, "options"_a);
 }
