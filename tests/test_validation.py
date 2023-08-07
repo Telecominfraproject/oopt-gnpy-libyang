@@ -153,3 +153,6 @@ def test_ietf_interfaces(context_with_modules):
     assert data["interface[name='lo']"]["ietf-ip:ipv6"]["address"]["prefix-length"].as_term().value == 128
 
     assert isinstance(data["interface[name='lo']"]["ietf-ip:ipv6"]["address"]["prefix-length"].as_term().value, int)
+
+    assert len(data.find("/ietf-interfaces:interfaces/interface")) == 4
+    assert [x["name"].as_term().value for x in data.find("/ietf-interfaces:interfaces/interface")] == ["lo", "eth0", "eth1", "br0"]

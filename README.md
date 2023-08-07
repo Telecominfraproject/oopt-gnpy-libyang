@@ -88,6 +88,12 @@ The data are provided as native Python types:
 type(data["interface[name='lo']"]["ietf-ip:ipv6"]["address"]["prefix-length"]
     .as_term().value) == int
 ```
+Absolute paths and generic XPath expressions can be used to retrieve arbitrary parts of the data forest, and to iterate over them:
+```python
+for iface in data.find("/ietf-interfaces:interfaces/interface"):
+    print iface["name"].as_term().value
+```
+
 ### Validation errors
 In libyang, if an operation fails, error details are available via `context.errors()`:
 ```python

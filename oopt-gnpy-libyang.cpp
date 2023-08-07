@@ -198,6 +198,10 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
                         return *set.begin();
                     }
                 })
+        .def("find",
+                [](const DataNode& node, const std::string& key) {
+                    return node.findXPath(key);
+                })
         ;
 
     py::class_<DataNodeTerm, DataNode>(m, "DataNodeTerm")
@@ -218,6 +222,14 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .def("__iter__",
             [](const Collection_DataNode_Dfs &s) { return py::make_iterator(s.begin(), s.end()); },
             py::keep_alive<0, 1>())
+        ;
+
+    using Set_DataNode = Set<DataNode>;
+    py::class_<Set_DataNode>(m, "_Set_DataNode")
+        .def("__iter__",
+            [](const Set_DataNode &s) { return py::make_iterator(s.begin(), s.end()); },
+            py::keep_alive<0, 1>())
+        .def("__len__", &Set_DataNode::size)
         ;
 
     py::class_<Context>(m, "Context")
