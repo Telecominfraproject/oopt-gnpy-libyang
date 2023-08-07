@@ -93,6 +93,11 @@ Absolute paths and generic XPath expressions can be used to retrieve arbitrary p
 for iface in data.find("/ietf-interfaces:interfaces/interface"):
     print iface["name"].as_term().value
 ```
+Relative XPath conditions can be also used at the root level (which is represented as NULL in the C level):
+```python
+for iface in search_at_root(data)("ietf-interfaces:interfaces/interface"):
+    print iface["name"].as_term().value
+```
 
 ### Validation errors
 In libyang, if an operation fails, error details are available via `context.errors()`:

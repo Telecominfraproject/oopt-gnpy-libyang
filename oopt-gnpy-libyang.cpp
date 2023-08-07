@@ -27,6 +27,10 @@ std::string repr_optional_string(const std::optional<std::string>& what)
 {
     return what ? quote_string(*what) : "None"s;
 }
+
+struct ProxyRoot {
+    DataNode forest;
+};
 }
 
 PYBIND11_MODULE(oopt_gnpy_libyang, m) {
@@ -230,6 +234,14 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
             [](const Set_DataNode &s) { return py::make_iterator(s.begin(), s.end()); },
             py::keep_alive<0, 1>())
         .def("__len__", &Set_DataNode::size)
+        ;
+
+    py::class_<ProxyRoot>(m, "search_at_root")
+        .def(py::init<const DataNode&>(), "forest"_a)
+        .def("__call__",
+                [](const ProxyRoot& proxy, const std::string& xpath) {
+                    return findXPathAt(std::nullopt, proxy.forest, xpath);
+                }, "xpath"_a)
         ;
 
     py::class_<Context>(m, "Context")

@@ -156,3 +156,9 @@ def test_ietf_interfaces(context_with_modules):
 
     assert len(data.find("/ietf-interfaces:interfaces/interface")) == 4
     assert [x["name"].as_term().value for x in data.find("/ietf-interfaces:interfaces/interface")] == ["lo", "eth0", "eth1", "br0"]
+
+    # paths relative to "the root", which on itself is not a node at the libyang level
+    assert len(ly.search_at_root(data)("ietf-interfaces:interfaces/interface")) == 4
+    assert [x["name"].as_term().value for x in ly.search_at_root(data)("ietf-interfaces:interfaces/interface")] == ["lo", "eth0", "eth1", "br0"]
+    assert len(ly.search_at_root(data)("ietf-hardware:hardware")) == 1
+    assert len(data.find("ietf-hardware:hardware")) == 0
