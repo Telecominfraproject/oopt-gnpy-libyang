@@ -185,8 +185,8 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .def("print", &DataNode::printStr, "format"_a, "flags"_a)
         .def("siblings", &DataNode::siblings)
         .def("child", &DataNode::child)
-        .def("childrenDfs", &DataNode::childrenDfs)
-        .def("immediateChildren", &DataNode::immediateChildren)
+        .def("children_dfs", &DataNode::childrenDfs)
+        .def("immediate_children", &DataNode::immediateChildren)
         .def("__getitem__",
                 [](const DataNode& node, const std::string& key) {
                     auto set = node.findXPath(key);

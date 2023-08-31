@@ -73,7 +73,7 @@ def test_ietf_interfaces(context_with_modules):
     assert data.path == '/ietf-interfaces:interfaces'
 
     assert [x.path for x in data.siblings()] == ['/ietf-interfaces:interfaces', '/ietf-hardware:hardware']
-    assert [inner.path for top in data.siblings() for inner in top.childrenDfs()] == [
+    assert [inner.path for top in data.siblings() for inner in top.children_dfs()] == [
         '/ietf-interfaces:interfaces',
         "/ietf-interfaces:interfaces/interface[name='lo']",
         "/ietf-interfaces:interfaces/interface[name='lo']/name",
@@ -129,7 +129,7 @@ def test_ietf_interfaces(context_with_modules):
         "/ietf-interfaces:interfaces/interface[name='br0']/ietf-ip:ipv6/autoconf/create-global-addresses",
         '/ietf-hardware:hardware',
     ]
-    assert [inner.path for top in data.siblings() for inner in top.immediateChildren()] == [
+    assert [inner.path for top in data.siblings() for inner in top.immediate_children()] == [
         f"/ietf-interfaces:interfaces/interface[name='{if_}']" for if_ in ('lo', 'eth0', 'eth1', 'br0')
     ]
 

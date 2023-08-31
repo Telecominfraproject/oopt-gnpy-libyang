@@ -65,7 +65,7 @@ Libyang works with forests (sets of trees), this is how to process all the data:
 ```python
 for x in data.siblings():
     print(f'a sibling: {x.path}')
-    for xx in x.childrenDfs():
+    for xx in x.children_dfs():
         print(f' {"term " if xx.is_term else "child"}: {xx.path}')
         if xx.is_term:
             print(f'  {xx.as_term()} {" (default)" if xx.as_term().is_default_value else ""}')
