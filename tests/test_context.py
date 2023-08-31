@@ -2,6 +2,8 @@ import pytest
 import oopt_gnpy_libyang as ly
 from pathlib import Path
 
+TEST_ROOT = Path(__file__).parent
+
 def test_no_module(context_no_libyang):
     with pytest.raises(ly.Error, match="Can't load module 'yay'"):
         context_no_libyang.load_module('yay')
@@ -10,6 +12,12 @@ def test_empty():
     c = ly.Context()
     with pytest.raises(ly.Error, match="Can't load module 'yay'"):
         c.load_module('yay')
+
+def test_module_parsing_basic(context_no_libyang):
+    assert context_no_libyang.parse_module(
+        TEST_ROOT / 'yang' / 'ietf-network@2018-02-26.yang',
+        ly.SchemaFormat.YANG) is not None
+    assert context_no_libyang.errors() == []
 
 def test_features(context_no_libyang):
     context_no_libyang.load_module('iana-if-type')
@@ -32,7 +40,6 @@ def test_no_shared_errors(context_no_libyang):
     assert context_no_libyang.errors() == []
 
 def test_explicit_loading(context_no_libyang):
-    TEST_ROOT = Path(__file__).parent
     with pytest.raises(ly.Error, match="Can't parse module: LY_ESYS"):
         context_no_libyang.parse_module(TEST_ROOT / 'no-such-path.yang', ly.SchemaFormat.YANG)
     m1 = context_no_libyang.parse_module(TEST_ROOT / 'yang' / 'iana-if-type@2017-01-19.yang', ly.SchemaFormat.YANG)
