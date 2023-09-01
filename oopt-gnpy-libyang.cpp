@@ -211,6 +211,10 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
                 [](const DataNode& node, const std::string& key) {
                     return node.findXPath(key);
                 })
+        .def("__setitem__",
+                [](DataNode& node, const std::string& key, const std::optional<std::string>& value) {
+                return node.newPath2(key, value, CreationOptions::Update).createdNode;
+                })
         ;
 
     py::class_<DataNodeTerm, DataNode>(m, "DataNodeTerm")
@@ -290,6 +294,12 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .def("parse_module",
                 py::overload_cast<const std::filesystem::path&, const SchemaFormat>(&Context::parseModule, py::const_),
                 "path"_a, "format"_a)
+        .def("create",
+                [](const Context& ctx, const std::string& path, const std::optional<std::string>& value) {
+                    auto created = ctx.newPath2(path, value);
+                    return created.createdNode;
+                },
+                "path"_a, "value"_a=std::nullopt)
         ;
 
     m.def("libyang_version", []() { return LY_VERSION; });

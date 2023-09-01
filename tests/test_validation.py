@@ -174,6 +174,24 @@ def test_ietf_interfaces(context_with_modules):
     assert data['interface[name="lo"]'].schema.name == "interface"
     assert data['interface[name="lo"]'].schema.path == "/ietf-interfaces:interfaces/interface"
 
+    # first assignmnet overwrites the value
+    assert data["interface[name='lo']"]["ietf-ip:ipv6"]["address"]["prefix-length"].as_term().value != 64
+    data["interface[name='lo']"]["ietf-ip:ipv6"]["address"]["prefix-length"] = "64"
+    assert data["interface[name='lo']"]["ietf-ip:ipv6"]["address"]["prefix-length"].as_term().value == 64
+    # doing it once again is a no-op
+    data["interface[name='lo']"]["ietf-ip:ipv6"]["address"]["prefix-length"] = "64"
+    assert data["interface[name='lo']"]["ietf-ip:ipv6"]["address"]["prefix-length"].as_term().value == 64
+
+    separate_node = context_with_modules.create("/ietf-interfaces:interfaces/interface[name='666']/ietf-ip:ipv6/enabled", "true")
+    assert separate_node.path == "/ietf-interfaces:interfaces/interface[name='666']/ietf-ip:ipv6/enabled"
+    with pytest.raises(KeyError, match="No such data node below"):
+        data[separate_node.path]
+    # non-leafs can be created as well
+    assert "/ietf-interfaces:interfaces/interface[name='42']" not in separate_node
+    separate_node["/ietf-interfaces:interfaces/interface[name='42']"] = None
+    assert "/ietf-interfaces:interfaces/interface[name='42']" in separate_node
+    context_with_modules.create("/ietf-interfaces:interfaces/interface[name='666']")
+
 def test_types(context_no_libyang):
     context_no_libyang.parse_module('''
 module dummy {

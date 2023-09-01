@@ -98,6 +98,12 @@ Relative XPath conditions can be also used at the root level (which is represent
 for iface in search_at_root(data)("ietf-interfaces:interfaces/interface"):
     print iface["name"].as_term().value
 ```
+New values can be created; use `None` for non-terminals, or `str` when a value is needed:
+```python
+node = ctx.create("/ietf-interfaces:interfaces/interface[name='666']")
+another = ctx.create("/ietf-interfaces:interfaces/interface[name='666']/ietf-ip:ipv6/enabled", "true")
+data["interface[name='lo']"]["ietf-ip:ipv6"]["address"]["prefix-length"] = "64"
+```
 
 ### Validation errors
 In libyang, if an operation fails, error details are available via `context.errors()`:
