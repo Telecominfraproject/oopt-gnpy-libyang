@@ -251,6 +251,11 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
 
     py::class_<Empty>(m, "Empty");
 
+    py::class_<Enum>(m, "Enum")
+        .def_readonly("name", &Enum::name)
+        .def_readonly("value", &Enum::value)
+        ;
+
     py::class_<Context>(m, "Context")
         .def(py::init<const std::optional<std::string>&, const std::optional<ContextOptions>>(), "searchPath"_a=std::nullopt, "options"_a=std::nullopt)
         .def("load_module", &Context::loadModule, "name"_a, "revision"_a=std::nullopt, "features"_a=std::vector<std::string>{})

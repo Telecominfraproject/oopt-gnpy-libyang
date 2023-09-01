@@ -180,11 +180,21 @@ module dummy {
     leaf emp {
         type empty;
     }
+
+    leaf enu {
+        type enumeration {
+            enum A;
+            enum B;
+        }
+    }
 }
 ''', ly.SchemaFormat.YANG)
-    data = context_no_libyang.parse_data('{"dummy:dec": "333.666", "dummy:emp": [null]}', ly.DataFormat.JSON)
+    data = context_no_libyang.parse_data('{"dummy:dec": "333.666", "dummy:emp": [null], "dummy:enu": "B"}', ly.DataFormat.JSON)
     assert float(data["/dummy:dec"].as_term().value) == 333.666
     assert str(data["/dummy:dec"].as_term().value) == "333.666000"
     assert str(data["/dummy:dec"].as_term()) == "333.666"
     assert isinstance(data["/dummy:emp"].as_term().value, ly.Empty)
     assert data["/dummy:emp"].as_term().value is not None
+    assert isinstance(data["/dummy:enu"].as_term().value, ly.Enum)
+    assert data["/dummy:enu"].as_term().value.name == "B"
+    assert data["/dummy:enu"].as_term().value.value == 1
