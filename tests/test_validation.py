@@ -162,3 +162,23 @@ def test_ietf_interfaces(context_with_modules):
     assert [x["name"].as_term().value for x in ly.search_at_root(data)("ietf-interfaces:interfaces/interface")] == ["lo", "eth0", "eth1", "br0"]
     assert len(ly.search_at_root(data)("ietf-hardware:hardware")) == 1
     assert len(data.find("ietf-hardware:hardware")) == 0
+
+def test_types(context_no_libyang):
+    context_no_libyang.parse_module('''
+module dummy {
+    yang-version 1.1;
+    namespace "dd";
+    prefix dd;
+    revision 2023-09-01;
+
+    leaf dec {
+        type decimal64 {
+            fraction-digits 6;
+        }
+    }
+}
+''', ly.SchemaFormat.YANG)
+    data = context_no_libyang.parse_data('{"dummy:dec": "333.666"}', ly.DataFormat.JSON)
+    assert float(data["/dummy:dec"].as_term().value) == 333.666
+    assert str(data["/dummy:dec"].as_term().value) == "333.666000"
+    assert str(data["/dummy:dec"].as_term()) == "333.666"

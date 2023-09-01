@@ -244,6 +244,11 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
                 }, "xpath"_a)
         ;
 
+    py::class_<Decimal64>(m, "Decimal64")
+        .def("__str__", [](const Decimal64& num) { return std::string{num}; })
+        .def("__float__", [](const Decimal64& num) { return double{num}; })
+        ;
+
     py::class_<Context>(m, "Context")
         .def(py::init<const std::optional<std::string>&, const std::optional<ContextOptions>>(), "searchPath"_a=std::nullopt, "options"_a=std::nullopt)
         .def("load_module", &Context::loadModule, "name"_a, "revision"_a=std::nullopt, "features"_a=std::vector<std::string>{})
