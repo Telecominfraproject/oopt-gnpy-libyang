@@ -167,6 +167,13 @@ def test_ietf_interfaces(context_with_modules):
     assert "name" in data["interface[name='lo']"]
     assert "pwnaaaageeee" not in data["interface[name='lo']"]
 
+    # schema paths
+    assert data['interface[name="lo"]'].schema.module.name == "ietf-interfaces"
+    assert data['interface[name="lo"]'].schema.module.revision == "2018-02-20"
+    assert data['interface[name="lo"]'].schema.module.implemented
+    assert data['interface[name="lo"]'].schema.name == "interface"
+    assert data['interface[name="lo"]'].schema.path == "/ietf-interfaces:interfaces/interface"
+
 def test_types(context_no_libyang):
     context_no_libyang.parse_module('''
 module dummy {

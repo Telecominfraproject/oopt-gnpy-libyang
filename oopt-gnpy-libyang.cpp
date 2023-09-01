@@ -185,6 +185,7 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
     py::class_<DataNode>(m, "DataNode")
         .def_property("path", &DataNode::path, nullptr)
         .def_property("is_term", &DataNode::isTerm, nullptr)
+        .def_property("schema", &DataNode::schema, nullptr)
         .def("as_term", &DataNode::asTerm)
         .def("print", &DataNode::printStr, "format"_a, "flags"_a)
         .def("siblings", &DataNode::siblings)
@@ -258,6 +259,13 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
     py::class_<Enum>(m, "Enum")
         .def_readonly("name", &Enum::name)
         .def_readonly("value", &Enum::value)
+        ;
+
+    py::class_<SchemaNode>(m, "SchemaNode")
+        .def_property("module", &SchemaNode::module, nullptr)
+        .def_property("name", &SchemaNode::name, nullptr)
+        .def_property("path", &SchemaNode::path, nullptr)
+        .def_property("description", &SchemaNode::description, nullptr)
         ;
 
     py::class_<Context>(m, "Context")
