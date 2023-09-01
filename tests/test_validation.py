@@ -163,6 +163,10 @@ def test_ietf_interfaces(context_with_modules):
     assert len(ly.search_at_root(data)("ietf-hardware:hardware")) == 1
     assert len(data.find("ietf-hardware:hardware")) == 0
 
+    # in/__contains__
+    assert "name" in data["interface[name='lo']"]
+    assert "pwnaaaageeee" not in data["interface[name='lo']"]
+
 def test_types(context_no_libyang):
     context_no_libyang.parse_module('''
 module dummy {

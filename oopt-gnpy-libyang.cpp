@@ -202,6 +202,10 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
                         return *set.begin();
                     }
                 })
+        .def("__contains__",
+                [](const DataNode& node, const std::string& key) {
+                    return node.findXPath(key).size() == 1;
+                })
         .def("find",
                 [](const DataNode& node, const std::string& key) {
                     return node.findXPath(key);
