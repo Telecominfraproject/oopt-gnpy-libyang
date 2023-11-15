@@ -26,6 +26,14 @@ jobs:
             python-version: "3.11"
             upload-sdist: true
 
+          - name: "Ubuntu 22.04 Python 3.12"
+            os: ubuntu-22.04
+            build_type: Release
+            generators: Ninja
+            wheel: manylinux_2_35_x86_64
+            python-version: "3.12"
+            upload-sdist: true
+
           - name: "Ubuntu 20.04 with GCC 10 Python 3.8"
             os: ubuntu-20.04
             build_type: Release
@@ -63,6 +71,14 @@ jobs:
             wheel: win_amd64
             python-version: "3.11"
 
+          - name: "Windows 2022 MSVC Python 3.12"
+            os: windows-2022
+            triplet: x64-windows
+            build_type: Release
+            generators: "Visual Studio 17 2022"
+            wheel: win_amd64
+            python-version: "3.12"
+
           - name: "macOS 12 x86_64 Python 3.10"
             os: macos-12
             build_type: Release
@@ -76,6 +92,13 @@ jobs:
             generators: Ninja
             wheel: macosx_12_0_x86_64
             python-version: "3.11"
+
+          - name: "macOS 12 x86_64 Python 3.12"
+            os: macos-12
+            build_type: Release
+            generators: Ninja
+            wheel: macosx_12_0_x86_64
+            python-version: "3.12"
 
           # Apple LLVM doesn't fully support C++20 (hi std::string::operator<=>),
           # so we require GCC, but the prebuilt GCC on GitHub Actions virtual environment
@@ -436,6 +459,11 @@ jobs:
             python-version: "3.11"
             wheel: manylinux_2_35_x86_64
 
+          - name: "Ubuntu 22.04 Python 3.12"
+            os: ubuntu-22.04
+            python-version: "3.12"
+            wheel: manylinux_2_35_x86_64
+
           - name: "Ubuntu 20.04 with GCC 10 Python 3.8"
             os: ubuntu-20.04
             wheel: manylinux_2_31_x86_64
@@ -466,6 +494,11 @@ jobs:
             wheel: win_amd64
             python-version: "3.11"
 
+          - name: "Windows 2022 MSVC Python 3.12"
+            os: windows-2022
+            wheel: win_amd64
+            python-version: "3.12"
+
           - name: "macOS 12 x86_64 Python 3.10"
             os: macos-12
             wheel: macosx_12_0_x86_64
@@ -475,6 +508,11 @@ jobs:
             os: macos-12
             wheel: macosx_12_0_x86_64
             python-version: "3.11"
+
+          - name: "macOS 12 x86_64 Python 3.12"
+            os: macos-12
+            wheel: macosx_12_0_x86_64
+            python-version: "3.12"
 
     steps:
       - uses: actions/checkout@v3
