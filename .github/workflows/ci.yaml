@@ -100,9 +100,12 @@ jobs:
             wheel: macosx_13_0_x86_64
             python-version: "3.12"
 
-          # Apple LLVM doesn't fully support C++20 (hi std::string::operator<=>),
-          # so we require GCC, but the prebuilt GCC on GitHub Actions virtual environment
-          # does not have a cross compiler. Sorry, no arm64 builds.
+          - name: "macOS 13 arm64 Python 3.12"
+            os: macos-13-xlarge
+            build_type: Release
+            generators: Ninja
+            wheel: macosx_13_0_arm64
+            python-version: "3.12"
 
     steps:
       - name: Unix line endings in git
@@ -525,6 +528,11 @@ jobs:
           - name: "macOS 13 x86_64 Python 3.12"
             os: macos-13
             wheel: macosx_13_0_x86_64
+            python-version: "3.12"
+
+          - name: "macOS 13 arm64 Python 3.12"
+            os: macos-13-xlarge
+            wheel: macosx_13_0_arm64
             python-version: "3.12"
 
     steps:
