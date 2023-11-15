@@ -189,18 +189,31 @@ jobs:
           echo CC=gcc-10 >> $GITHUB_ENV
           echo CXX=g++-10 >> $GITHUB_ENV
 
-      - name: GCC 11 on Mac OS
-        if: startsWith(matrix.os, 'macos')
+      - name: GCC 11 on Mac OS 12
+        if: startsWith(matrix.os, 'macos-12')
         shell: bash
         run: |
           echo CC=gcc-11 >> $GITHUB_ENV
           echo CXX=g++-11 >> $GITHUB_ENV
 
-      - name: Mac OS deployment target
-        if: startsWith(matrix.os, 'macos')
+      - name: GCC 13 on Mac OS 13
+        if: startsWith(matrix.os, 'macos-13')
+        shell: bash
+        run: |
+          echo CC=gcc-13 >> $GITHUB_ENV
+          echo CXX=g++-13 >> $GITHUB_ENV
+
+      - name: Mac OS 12 deployment target
+        if: startsWith(matrix.os, 'macos-12')
         shell: bash
         run: |
           echo MACOSX_DEPLOYMENT_TARGET=12.4 >> $GITHUB_ENV
+
+      - name: Mac OS 13 deployment target
+        if: startsWith(matrix.os, 'macos-13')
+        shell: bash
+        run: |
+          echo MACOSX_DEPLOYMENT_TARGET=13.0 >> $GITHUB_ENV
 
       - name: Mac OS ARCHFLAGS x86_64
         if: startsWith(matrix.os, 'macos') && endsWith(matrix.wheel, '_x86_64')
