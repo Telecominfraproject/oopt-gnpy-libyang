@@ -93,11 +93,11 @@ jobs:
             wheel: macosx_12_0_x86_64
             python-version: "3.11"
 
-          - name: "macOS 12 x86_64 Python 3.12"
-            os: macos-12
+          - name: "macOS 13 x86_64 Python 3.12"
+            os: macos-13
             build_type: Release
             generators: Ninja
-            wheel: macosx_12_0_x86_64
+            wheel: macosx_13_0_x86_64
             python-version: "3.12"
 
           # Apple LLVM doesn't fully support C++20 (hi std::string::operator<=>),
@@ -509,9 +509,9 @@ jobs:
             wheel: macosx_12_0_x86_64
             python-version: "3.11"
 
-          - name: "macOS 12 x86_64 Python 3.12"
-            os: macos-12
-            wheel: macosx_12_0_x86_64
+          - name: "macOS 13 x86_64 Python 3.12"
+            os: macos-13
+            wheel: macosx_13_0_x86_64
             python-version: "3.12"
 
     steps:
