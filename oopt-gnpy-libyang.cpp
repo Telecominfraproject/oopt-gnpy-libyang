@@ -146,6 +146,7 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
 
     py::class_<Feature>(m, "Feature")
         .def_property("name", &Feature::name, nullptr)
+        .def_property("is_enabled", &Feature::isEnabled, nullptr)
         ;
 
     py::class_<Module>(m, "Module")
@@ -276,7 +277,8 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .def(py::init<const std::optional<std::string>&, const std::optional<ContextOptions>>(), "searchPath"_a=std::nullopt, "options"_a=std::nullopt)
         .def("load_module", &Context::loadModule, "name"_a, "revision"_a=std::nullopt, "features"_a=std::vector<std::string>{})
         .def("modules", &Context::modules)
-        .def("get_module", &Context::getModule, "name"_a, "revision"_a=std::nullopt)
+        .def("get_module", &Context::getModule, "name"_a, "revision"_a)
+        .def("get_module_latest", &Context::getModuleLatest, "name"_a)
         .def("get_module_implemented", &Context::getModuleImplemented, "name"_a)
         .def("errors", &Context::getErrors)
         .def("clean_all_errors", &Context::cleanAllErrors)
@@ -289,11 +291,11 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
                     const std::optional<ValidationOptions>>(&Context::parseData, py::const_),
                 "path"_a, "format"_a, "parse_options"_a=std::nullopt, "validation_options"_a=std::nullopt)
         .def("parse_module",
-                py::overload_cast<const std::string&, const SchemaFormat>(&Context::parseModule, py::const_),
-                "data"_a, "format"_a)
+                py::overload_cast<const std::string&, const SchemaFormat, const std::vector<std::string>&>(&Context::parseModule, py::const_),
+                "data"_a, "format"_a, "features"_a=std::vector<std::string>{})
         .def("parse_module",
-                py::overload_cast<const std::filesystem::path&, const SchemaFormat>(&Context::parseModule, py::const_),
-                "path"_a, "format"_a)
+                py::overload_cast<const std::filesystem::path&, const SchemaFormat, const std::vector<std::string>&>(&Context::parseModule, py::const_),
+                "path"_a, "format"_a, "features"_a=std::vector<std::string>{})
         .def("create",
                 [](const Context& ctx, const std::string& path, const std::optional<std::string>& value) {
                     auto created = ctx.newPath2(path, value);
