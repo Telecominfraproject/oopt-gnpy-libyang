@@ -12,20 +12,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "Ubuntu 22.04 Python 3.10"
-            os: ubuntu-22.04
-            build_type: Release
-            generators: Ninja
-            python-version: "3.10"
-
-          - name: "Ubuntu 22.04 Python 3.11"
-            os: ubuntu-22.04
-            build_type: Release
-            generators: Ninja
-            wheel: manylinux_2_35_x86_64
-            python-version: "3.11"
-            upload-sdist: true
-
           - name: "Ubuntu 22.04 Python 3.12"
             os: ubuntu-22.04
             build_type: Release
@@ -33,27 +19,6 @@ jobs:
             wheel: manylinux_2_35_x86_64
             python-version: "3.12"
             upload-sdist: true
-
-          - name: "Ubuntu 20.04 with GCC 10 Python 3.8"
-            os: ubuntu-20.04
-            build_type: Release
-            generators: Ninja
-            wheel: manylinux_2_31_x86_64
-            python-version: "3.8"
-
-          - name: "Ubuntu 20.04 with GCC 10 Python 3.9"
-            os: ubuntu-20.04
-            build_type: Release
-            generators: Ninja
-            wheel: manylinux_2_31_x86_64
-            python-version: "3.9"
-
-          - name: "Ubuntu 20.04 with GCC 10 Python 3.10"
-            os: ubuntu-20.04
-            build_type: Release
-            generators: Ninja
-            wheel: manylinux_2_31_x86_64
-            python-version: "3.10"
 
           - name: "Windows 2022 MSVC Python 3.10"
             os: windows-2022
@@ -472,35 +437,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "Ubuntu 22.04 Python 3.10"
-            os: ubuntu-22.04
-            python-version: "3.10"
-            wheel: manylinux_2_31_x86_64
-
-          - name: "Ubuntu 22.04 Python 3.11"
-            os: ubuntu-22.04
-            python-version: "3.11"
-            wheel: manylinux_2_35_x86_64
-
           - name: "Ubuntu 22.04 Python 3.12"
             os: ubuntu-22.04
             python-version: "3.12"
             wheel: manylinux_2_35_x86_64
-
-          - name: "Ubuntu 20.04 with GCC 10 Python 3.8"
-            os: ubuntu-20.04
-            wheel: manylinux_2_31_x86_64
-            python-version: "3.8"
-
-          - name: "Ubuntu 20.04 with GCC 10 Python 3.9"
-            os: ubuntu-20.04
-            wheel: manylinux_2_31_x86_64
-            python-version: "3.9"
-
-          - name: "Ubuntu 20.04 with GCC 10 Python 3.10"
-            os: ubuntu-20.04
-            wheel: manylinux_2_31_x86_64
-            python-version: "3.10"
 
           - name: "Windows 2019 MSVC Python 3.10"
             os: windows-2019
@@ -575,33 +515,3 @@ jobs:
       - name: run pytest
         working-directory: ${{ github.workspace }}
         run: pytest -vv
-
-  upload:
-    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && github.repository_owner == 'Telecominfraproject' }}
-    needs:
-      - build
-      - test
-    name: Upload to PyPI
-    runs-on: ubuntu-22.04
-    environment:
-      name: pypi
-      url: https://pypi.org/p/oopt-gnpy-libyang
-    permissions:
-      id-token: write
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v3
-        with:
-          path: ${{ github.workspace }}/all-artifacts
-
-      - name: rearrange the wheels
-        run: |
-          set -ex
-          mkdir pypi
-          mv -v ${{ github.workspace }}/all-artifacts/*/* pypi/
-
-      - name: upload to pypi
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          packages-dir: pypi/
