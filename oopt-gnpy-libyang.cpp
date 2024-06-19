@@ -219,7 +219,8 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         ;
 
     py::class_<DataNodeTerm, DataNode>(m, "DataNodeTerm")
-        .def_property("is_default_value", &DataNodeTerm::isDefaultValue, nullptr)
+        .def_property("has_default_value", &DataNodeTerm::hasDefaultValue, nullptr)
+        .def_property("is_implicit_default", &DataNodeTerm::isImplicitDefault, nullptr)
         .def_property("value", &DataNodeTerm::value, nullptr)
         .def("__str__", &DataNodeTerm::valueStr)
         ;

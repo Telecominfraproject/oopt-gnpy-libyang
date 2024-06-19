@@ -68,7 +68,7 @@ for x in data.siblings():
     for xx in x.children_dfs():
         print(f' {"term " if xx.is_term else "child"}: {xx.path}')
         if xx.is_term:
-            print(f'  {xx.as_term()} {" (default)" if xx.as_term().is_default_value else ""}')
+            print(f'  {xx.as_term()} {" (default)" if xx.as_term().has_default_value else ""}')
 ```
 Data can be accessed via their known paths, of course. Either as a full, multi-level XPath:
 
