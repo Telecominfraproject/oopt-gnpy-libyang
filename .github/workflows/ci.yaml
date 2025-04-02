@@ -170,6 +170,15 @@ jobs:
         run: |
           echo CXXFLAGS=" /wd4251 /wd4275" >> $GITHUB_ENV
 
+      # FIXME: remove this once the crash in regex is deubgged
+      - name: Configure OS X CXXFLAGS
+        if: startsWith(matrix.os, 'macos')
+        shell: bash
+        run: |
+          echo CFLAGS="-fsanitize=address,undefined" >> $GITHUB_ENV
+          echo CXXFLAGS="-fsanitize=address,undefined" >> $GITHUB_ENV
+          echo LDFLAGS="-fsanitize=address,undefined" >> $GITHUB_ENV
+
       - name: GCC 10 on Ubuntu 20.04
         if: matrix.os == 'ubuntu-20.04'
         shell: bash

@@ -1,3 +1,4 @@
+import json
 import pytest
 import oopt_gnpy_libyang as ly
 
@@ -191,6 +192,20 @@ def test_ietf_interfaces(context_with_modules):
     separate_node["/ietf-interfaces:interfaces/interface[name='42']"] = None
     assert "/ietf-interfaces:interfaces/interface[name='42']" in separate_node
     context_with_modules.create("/ietf-interfaces:interfaces/interface[name='666']")
+
+    wrong = json.loads(blob)
+    wrong["ietf-interfaces:interfaces"]["interface"][0]["ietf-ip:ipv6"]["address"][0]["prefix-length"] = 666
+    try:
+        data = context_with_modules.parse_data(json.dumps(wrong, indent=2),
+            ly.DataFormat.JSON, ly.ParseOptions.Strict | ly.ParseOptions.Ordered,
+            ly.ValidationOptions.Present | ly.ValidationOptions.NoState)
+        assert False
+    except ly.Error:
+        for error in context_with_modules.errors():
+            assert error.schema_path is None
+            assert error.data_path == "/ietf-interfaces:interfaces/interface[name='lo']/ietf-ip:ipv6/address[ip='::1']/prefix-length"
+            assert error.line == 20
+            assert error.message == 'Value "666" is out of type uint8 min/max bounds.'
 
 def test_types(context_no_libyang):
     context_no_libyang.parse_module('''
