@@ -242,6 +242,13 @@ jobs:
         if: startswith(matrix.os, 'macos-13')
         run: sudo xcode-select -switch /Applications/Xcode_14.3.1.app
 
+      # FIXME: CMake 4.0 is backwards-incompatible, https://github.com/actions/runner-images/issues/11926
+      - name: pin CMake to the latest 3.x series
+        uses: jwlawson/actions-setup-cmake@09fd9b0fb3b239b4b68d9256cd65adf8d6b91da0
+        if: startsWith(matrix.os, 'windows')
+        with:
+          cmake-version: '3.31.6'
+
       - name: Install Windows dependencies
         if: >
           startsWith(matrix.os, 'windows') &&
