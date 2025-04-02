@@ -24,7 +24,6 @@ jobs:
             generators: Ninja
             wheel: manylinux_2_35_x86_64
             python-version: "3.11"
-            upload-sdist: true
 
           - name: "Ubuntu 22.04 Python 3.12"
             os: ubuntu-22.04
@@ -448,7 +447,7 @@ jobs:
 
       - name: upload the wheel
         if: matrix.wheel
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: 'wheel-${{ matrix.wheel }}-${{ matrix.python-version }}'
           path: |
@@ -457,7 +456,7 @@ jobs:
 
       - name: upload the sdist
         if: matrix.upload-sdist
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sdist
           path: |
@@ -558,7 +557,7 @@ jobs:
           mkdir ${GITHUB_WORKSPACE//\\//}/wheelhouse
 
       - name: download the wheel
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         id: download-wheel
         with:
           name: 'wheel-${{ matrix.wheel }}-${{ matrix.python-version }}'
@@ -590,7 +589,7 @@ jobs:
       id-token: write
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: ${{ github.workspace }}/all-artifacts
 
