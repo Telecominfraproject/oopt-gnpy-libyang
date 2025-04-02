@@ -68,7 +68,7 @@ for x in data.siblings():
     for xx in x.children_dfs():
         print(f' {"term " if xx.is_term else "child"}: {xx.path}')
         if xx.is_term:
-            print(f'  {xx.as_term()} {" (default)" if xx.as_term().is_default_value else ""}')
+            print(f'  {xx.as_term()} {" (default)" if xx.as_term().has_default_value else ""}')
 ```
 Data can be accessed via their known paths, of course. Either as a full, multi-level XPath:
 
@@ -119,7 +119,9 @@ try:
     assert False
 except ly.Error:
     for error in c.errors():
-        assert error.path == "Schema location \"/ietf-interfaces:interfaces/interface/ietf-ip:ipv6/address/prefix-length\", data location \"/ietf-ip:address[ip='::1']\", line number 1."
+        assert error.schema_path is None
+        assert error.data_path == "/ietf-interfaces:interfaces/interface[name='lo']/ietf-ip:ipv6/address[ip='::1']/prefix-length"
+        assert error.line > 0
         assert error.message == 'Value "666" is out of type uint8 min/max bounds.'
 ```
 

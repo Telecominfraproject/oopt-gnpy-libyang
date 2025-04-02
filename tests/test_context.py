@@ -27,10 +27,13 @@ def test_features(context_no_libyang):
     m = context_no_libyang.load_module('ietf-interfaces')
     with pytest.raises(ly.Error, match="Couldn't set module 'ietf-interfaces' to implemented: LY_EINVAL"):
        m.set_implemented_with_features(['arbotrary-names'])
-    errors = [(e.level, e.code, e.message, e.path, e.validation_code, e.app_tag) for e in context_no_libyang.errors()]
+    errors = [
+        (e.level, e.code, e.message, e.data_path, e.schema_path, e.line, e.validation_code, e.app_tag)
+        for e in context_no_libyang.errors()
+    ]
     assert errors == [
         (ly.LogLevel.Error, ly.ErrorCode.InvalidValue, 'Feature "arbotrary-names" not found in module "ietf-interfaces".',
-         None, ly.ValidationErrorCode.Success, None)
+         None, None, 0, ly.ValidationErrorCode.Success, None)
     ]
     m.set_implemented_with_features(['arbitrary-names'])
     for feature in m.features:
@@ -54,5 +57,5 @@ def test_explicit_loading(context_no_libyang):
 
 def test_version():
     assert len(ly.libyang_version_info()) == 3
-    assert ly.libyang_version_info()[0] == 2
-    assert ly.libyang_version()[0:2] == '2.'
+    assert ly.libyang_version_info()[0] == 3
+    assert ly.libyang_version()[0:2] == '3.'
