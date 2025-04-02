@@ -167,7 +167,9 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .def_readonly("level", &ErrorInfo::level)
         .def_readonly("message", &ErrorInfo::message)
         .def_readonly("code", &ErrorInfo::code)
-        .def_readonly("path", &ErrorInfo::path)
+        .def_readonly("data_path", &ErrorInfo::dataPath)
+        .def_readonly("schema_path", &ErrorInfo::schemaPath)
+        .def_readonly("line", &ErrorInfo::line)
         .def_readonly("validation_code", &ErrorInfo::validationCode)
         .def("__repr__", [](const ErrorInfo& e) {
                     std::ostringstream ss;
@@ -176,7 +178,9 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
                     ss << ", code = " << e.code;
                     ss << ", validation_code = " << e.validationCode;
                     ss << ", message = " << repr_optional_string(e.message);
-                    ss << ", path = " << repr_optional_string(e.path);
+                    ss << ", data_path = " << repr_optional_string(e.dataPath);
+                    ss << ", schema_path = " << repr_optional_string(e.schemaPath);
+                    ss << ", line = " << e.line;
                     ss << ", app_tag = " << repr_optional_string(e.appTag);
                     ss << ")";
                     return ss.str();
@@ -219,7 +223,8 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         ;
 
     py::class_<DataNodeTerm, DataNode>(m, "DataNodeTerm")
-        .def_property("is_default_value", &DataNodeTerm::isDefaultValue, nullptr)
+        .def_property("has_default_value", &DataNodeTerm::hasDefaultValue, nullptr)
+        .def_property("is_implicit_default", &DataNodeTerm::isImplicitDefault, nullptr)
         .def_property("value", &DataNodeTerm::value, nullptr)
         .def("__str__", &DataNodeTerm::valueStr)
         ;
