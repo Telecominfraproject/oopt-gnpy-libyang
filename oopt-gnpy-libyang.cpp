@@ -45,6 +45,13 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .value("PreferSearchDirs", ContextOptions::PreferSearchDirs)
         .value("SetPrivParsed", ContextOptions::SetPrivParsed)
         .value("ExplicitCompile", ContextOptions::ExplicitCompile)
+        .value("EnableImpFeatures", ContextOptions::EnableImpFeatures)
+        .value("CompileObsolete", ContextOptions::CompileObsolete)
+        .value("LybHashes", ContextOptions::LybHashes)
+        .value("LeafrefExtended", ContextOptions::LeafrefExtended)
+        .value("LeafrefLinking", ContextOptions::LeafrefLinking)
+        .value("BuiltinPluginsOnly", ContextOptions::BuiltinPluginsOnly)
+        .value("StaticPluginsOnly", ContextOptions::StaticPluginsOnly)
         .def("__or__", [](ContextOptions a, ContextOptions b){ return a | b; })
         ;
 
@@ -104,11 +111,15 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .value("Strict", ParseOptions::Strict)
         .value("Opaque", ParseOptions::Opaque)
         .value("NoState", ParseOptions::NoState)
-        .value("LybModUpdate", ParseOptions::LybModUpdate)
+        .value("LybSkipModuleCheck", ParseOptions::LybSkipModuleCheck)
+        .value("LybModUpdate", ParseOptions::LybSkipModuleCheck)
         .value("Ordered", ParseOptions::Ordered)
         .value("Subtree", ParseOptions::Subtree)
         .value("WhenTrue", ParseOptions::WhenTrue)
         .value("NoNew", ParseOptions::NoNew)
+        .value("StoreOnly", ParseOptions::StoreOnly)
+        .value("JsonNull", ParseOptions::JsonNull)
+        .value("JsonStringDataTypes", ParseOptions::JsonStringDataTypes)
         .def("__or__", [](ParseOptions a, ParseOptions b){ return a | b; })
         ;
 
@@ -118,19 +129,23 @@ PYBIND11_MODULE(oopt_gnpy_libyang, m) {
         .value("MultiError", ValidationOptions::MultiError)
         .value("Operational", ValidationOptions::Operational)
         .value("NoDefaults", ValidationOptions::NoDefaults)
+        .value("NotFinal", ValidationOptions::NotFinal)
         .def("__or__", [](ValidationOptions a, ValidationOptions b){ return a | b; })
         ;
 
     py::enum_<PrintFlags>(m, "PrintFlags")
         .value("WithDefaultsExplicit", PrintFlags::WithDefaultsExplicit)
-        .value("WithSiblings", PrintFlags::WithSiblings)
+        .value("Siblings", PrintFlags::Siblings)
+        .value("WithSiblings", PrintFlags::Siblings)
         .value("Shrink", PrintFlags::Shrink)
-        .value("KeepEmptyCont", PrintFlags::KeepEmptyCont)
+        .value("EmptyContainers", PrintFlags::EmptyContainers)
+        .value("KeepEmptyCont", PrintFlags::EmptyContainers)
         .value("WithDefaultsTrim", PrintFlags::WithDefaultsTrim)
         .value("WithDefaultsAll", PrintFlags::WithDefaultsAll)
         .value("WithDefaultsAllTag", PrintFlags::WithDefaultsAllTag)
         .value("WithDefaultsImplicitTag", PrintFlags::WithDefaultsImplicitTag)
         .value("WithDefaultsMask", PrintFlags::WithDefaultsMask)
+        .value("JsonNoNestedPrefix", PrintFlags::JsonNoNestedPrefix)
         .def("__or__", [](PrintFlags a, PrintFlags b){ return a | b; })
         ;
 

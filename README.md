@@ -21,7 +21,7 @@ We also produce prebuilt binary [wheels](https://realpython.com/python-wheels/) 
 ```python
 import oopt_gnpy_libyang as ly
 
-c = ly.Context('tests/yang', ly.ContextOptions.AllImplemented | ly.ContextOptions.NoYangLibrary)
+c = ly.Context('tests/yang', ly.ContextOptions.RefImplemented | ly.ContextOptions.NoYangLibrary)
 for m in ('iana-if-type', 'ietf-interfaces', 'ietf-ip'):
     c.load_module(m)
 blob = '''{
