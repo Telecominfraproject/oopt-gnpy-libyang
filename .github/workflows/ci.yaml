@@ -33,27 +33,6 @@ jobs:
             python-version: "3.12"
             upload-sdist: true
 
-          - name: "Ubuntu 20.04 with GCC 10 Python 3.8"
-            os: ubuntu-20.04
-            build_type: Release
-            generators: Ninja
-            wheel: manylinux_2_31_x86_64
-            python-version: "3.8"
-
-          - name: "Ubuntu 20.04 with GCC 10 Python 3.9"
-            os: ubuntu-20.04
-            build_type: Release
-            generators: Ninja
-            wheel: manylinux_2_31_x86_64
-            python-version: "3.9"
-
-          - name: "Ubuntu 20.04 with GCC 10 Python 3.10"
-            os: ubuntu-20.04
-            build_type: Release
-            generators: Ninja
-            wheel: manylinux_2_31_x86_64
-            python-version: "3.10"
-
           - name: "Windows 2022 MSVC Python 3.10"
             os: windows-2022
             triplet: x64-windows
@@ -170,13 +149,6 @@ jobs:
         run: |
           echo CXXFLAGS=" /wd4251 /wd4275" >> $GITHUB_ENV
 
-      - name: GCC 10 on Ubuntu 20.04
-        if: matrix.os == 'ubuntu-20.04'
-        shell: bash
-        run: |
-          echo CC=gcc-10 >> $GITHUB_ENV
-          echo CXX=g++-10 >> $GITHUB_ENV
-
       - name: GCC 14 on Mac OS 15
         if: startsWith(matrix.os, 'macos-13')
         shell: bash
@@ -254,7 +226,6 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         run: brew install pcre2 cmocka doctest ninja tcl-tk
 
-      # Ubuntu 20.04: the system pybind11 is too old (unspecified reasons, commit 3a458f23)
       # Ubuntu 22.04: the system pybind11 doesn't work with non-system Python 3.11:
       # pybind11/detail/type_caster_base.h:482:26: error: invalid use of incomplete type ‘PyFrameObject’ {aka ‘struct _frame’}
       # Windows: pybind11 by vcpkg won't work for any other version of Python by design, https://github.com/microsoft/vcpkg/issues/23796
@@ -382,17 +353,8 @@ jobs:
           export CMAKE_ARGS="${EXTRA_VCPKG_TARGET_TRIPLET:+${EXTRA_VCPKG_TARGET_TRIPLET} }${EXTRA_CMAKE_TOOLCHAIN_FILE:+${EXTRA_CMAKE_TOOLCHAIN_FILE} }${EXTRA_PKG_CONFIG_EXECUTABLE:+${EXTRA_PKG_CONFIG_EXECUTABLE}}"
           python3 -m build --skip-dependency-check --outdir '${{ github.workspace }}'/build-wheel '${{ github.workspace }}/'
 
-      - name: fix the wheel, Ubuntu 20.x
-        if: startsWith(matrix.os, 'ubuntu-20') && (matrix.wheel != '')
-        shell: bash
-        run: |
-          # we're on old Ubuntu to use an old manylinux tag, and newer auditwheel requires too fresh patchelf
-          pip install 'auditwheel<5.2.0'
-          find '${{ github.workspace }}'/build-wheel -name '*.whl'
-          auditwheel repair --plat '${{ matrix.wheel }}' '${{ github.workspace }}'/build-wheel/*.whl
-
-      - name: fix the wheel, Ubuntu 22.x
-        if: startsWith(matrix.os, 'ubuntu-22') && (matrix.wheel != '')
+      - name: fix the wheel, Ubuntu
+        if: startsWith(matrix.os, 'ubuntu') && (matrix.wheel != '')
         shell: bash
         run: |
           pip install auditwheel
@@ -456,21 +418,6 @@ jobs:
             os: ubuntu-22.04
             python-version: "3.12"
             wheel: manylinux_2_35_x86_64
-
-          - name: "Ubuntu 20.04 with GCC 10 Python 3.8"
-            os: ubuntu-20.04
-            wheel: manylinux_2_31_x86_64
-            python-version: "3.8"
-
-          - name: "Ubuntu 20.04 with GCC 10 Python 3.9"
-            os: ubuntu-20.04
-            wheel: manylinux_2_31_x86_64
-            python-version: "3.9"
-
-          - name: "Ubuntu 20.04 with GCC 10 Python 3.10"
-            os: ubuntu-20.04
-            wheel: manylinux_2_31_x86_64
-            python-version: "3.10"
 
           - name: "Windows 2019 MSVC Python 3.10"
             os: windows-2019
