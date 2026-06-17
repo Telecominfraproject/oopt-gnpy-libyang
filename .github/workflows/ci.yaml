@@ -419,11 +419,6 @@ jobs:
             python-version: "3.12"
             wheel: manylinux_2_35_x86_64
 
-          - name: "Windows 2019 MSVC Python 3.10"
-            os: windows-2019
-            wheel: win_amd64
-            python-version: "3.10"
-
           - name: "Windows 2022 MSVC Python 3.10"
             os: windows-2022
             wheel: win_amd64
