@@ -57,15 +57,15 @@ jobs:
             wheel: win_amd64
             python-version: "3.12"
 
-          - name: "macOS 15 x86_64 x86_64 Python 3.13"
-            os: macos-15-large
+          - name: "macOS 26 x86_64 Python 3.13"
+            os: macos-26-intel
             build_type: Release
             generators: Ninja
             wheel: macosx_15_0_x86_64
             python-version: "3.13"
 
-          - name: "macOS 15 arm64 Python 3.13"
-            os: macos-15-xlarge
+          - name: "macOS 26 arm64 Python 3.13"
+            os: macos-26
             build_type: Release
             generators: Ninja
             wheel: macosx_15_0_arm64
@@ -149,18 +149,30 @@ jobs:
         run: |
           echo CXXFLAGS=" /wd4251 /wd4275" >> $GITHUB_ENV
 
-      - name: GCC 14 on Mac OS 15
-        if: startsWith(matrix.os, 'macos-13')
-        shell: bash
-        run: |
-          echo CC=gcc-14 >> $GITHUB_ENV
-          echo CXX=g++-14 >> $GITHUB_ENV
+      # - name: GCC 15 on Mac OS 15
+      #   if: startsWith(matrix.os, 'macos-15')
+      #   shell: bash
+      #   run: |
+      #     echo CC=gcc-15 >> $GITHUB_ENV
+      #     echo CXX=g++-15 >> $GITHUB_ENV
 
-      - name: Mac OS 15 deployment target
-        if: startsWith(matrix.os, 'macos-15')
+      # - name: Mac OS 15 deployment target
+      #   if: startsWith(matrix.os, 'macos-15')
+      #   shell: bash
+      #   run: |
+      #     echo MACOSX_DEPLOYMENT_TARGET=15.0 >> $GITHUB_ENV
+      #     #
+      # - name: Mac OS C++ exceptions fixup
+      #   if: startsWith(matrix.os, 'macos')
+      #   shell: bash
+      #   run: |
+      #     echo LDFLAGS="-Wl,-keep_dwarf_unwind -Wl,-no_compact_unwind" >> $GITHUB_ENV
+
+      - name: Mac OS C++ exceptions fixup
+        if: startsWith(matrix.os, 'macos')
         shell: bash
         run: |
-          echo MACOSX_DEPLOYMENT_TARGET=15.0 >> $GITHUB_ENV
+          echo LDFLAGS="-Wl,-keep_dwarf_unwind -Wl,-no_compact_unwind" >> $GITHUB_ENV
 
       - name: Mac OS ARCHFLAGS x86_64
         if: startsWith(matrix.os, 'macos') && endsWith(matrix.wheel, '_x86_64')
@@ -276,6 +288,7 @@ jobs:
             -B '${{ github.workspace }}/'../build-libyang-cpp \
             -G '${{ matrix.generators }}' \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
             ${EXTRA_VCPKG_TARGET_TRIPLET:+${EXTRA_VCPKG_TARGET_TRIPLET}} \
             ${EXTRA_CMAKE_TOOLCHAIN_FILE:+${EXTRA_CMAKE_TOOLCHAIN_FILE}} \
             ${EXTRA_OSX_ARCH:+${EXTRA_OSX_ARCH}} \
