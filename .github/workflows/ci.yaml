@@ -395,8 +395,25 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu-22') && (matrix.wheel != '')
         shell: bash
         run: |
-          pip install auditwheel
-          find '${{ github.workspace }}'/build-wheel -name '*.whl'
+          set -euxo pipefail
+
+          python -m pip install --upgrade \
+            auditwheel \
+            'patchelf>=0.14.5'
+
+          # Force the use of executables installed by the current Python interpreter
+          PYTHON_SCRIPTS="$(python -c 'import sysconfig; print(sysconfig.get_path("scripts"))')"
+          export PATH="${PYTHON_SCRIPTS}:${PATH}"
+
+          echo "PATH=${PATH}"
+          command -v patchelf
+          patchelf --version
+
+          command -v auditwheel
+          auditwheel --version
+
+          find '${{ github.workspace }}'/build-wheel -name '*.whl' -print
+
           auditwheel repair --plat '${{ matrix.wheel }}' '${{ github.workspace }}'/build-wheel/*.whl
 
       - name: fix the wheel, Windows
