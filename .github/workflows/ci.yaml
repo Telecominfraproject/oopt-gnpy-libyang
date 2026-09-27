@@ -68,7 +68,9 @@ jobs:
             os: windows-2025
             triplet: x64-windows
             build_type: Release
-            generators: "Visual Studio 17 2022"
+            generators: "Visual Studio 18 2026"
+            cmake-version: "4.2.0"
+            wheel: win_amd64
             python-version: "3.13"
 
           - name: "macOS 15 x86_64 Python 3.13"
@@ -243,11 +245,11 @@ jobs:
           echo EXTRA_OSX_LIBYANG=-DPATH_EXPECT= >> $GITHUB_ENV
 
       # FIXME: CMake 4.0 is backwards-incompatible, https://github.com/actions/runner-images/issues/11926
-      - name: pin CMake to the latest 3.x series
+      - name: pin CMake
         uses: jwlawson/actions-setup-cmake@09fd9b0fb3b239b4b68d9256cd65adf8d6b91da0
         if: startsWith(matrix.os, 'windows')
         with:
-          cmake-version: '3.31.6'
+          cmake-version: ${{ matrix.cmake-version || '3.31.6' }}
 
       - name: Install Windows dependencies
         if: >
@@ -395,8 +397,25 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu-22') && (matrix.wheel != '')
         shell: bash
         run: |
-          pip install auditwheel
-          find '${{ github.workspace }}'/build-wheel -name '*.whl'
+          set -euxo pipefail
+
+          python -m pip install --upgrade \
+            auditwheel \
+            'patchelf>=0.14.5'
+
+          # Force the use of executables installed by the current Python interpreter
+          PYTHON_SCRIPTS="$(python -c 'import sysconfig; print(sysconfig.get_path("scripts"))')"
+          export PATH="${PYTHON_SCRIPTS}:${PATH}"
+
+          echo "PATH=${PATH}"
+          command -v patchelf
+          patchelf --version
+
+          command -v auditwheel
+          auditwheel --version
+
+          find '${{ github.workspace }}'/build-wheel -name '*.whl' -print
+
           auditwheel repair --plat '${{ matrix.wheel }}' '${{ github.workspace }}'/build-wheel/*.whl
 
       - name: fix the wheel, Windows
