@@ -57,5 +57,17 @@ def test_explicit_loading(context_no_libyang):
 
 def test_version():
     assert len(ly.libyang_version_info()) == 3
-    assert ly.libyang_version_info()[0] == 3
-    assert ly.libyang_version()[0:2] == '3.'
+    major, minor, micro = ly.libyang_version_info()
+    assert ly.libyang_version() == f"{major}.{minor}.{micro}"
+
+
+def test_enum_api_compatibility():
+    assert ly.ParseOptions.LybSkipModuleCheck == ly.ParseOptions.LybModUpdate
+    assert ly.PrintFlags.Siblings == ly.PrintFlags.WithSiblings
+    assert ly.PrintFlags.EmptyContainers == ly.PrintFlags.KeepEmptyCont
+
+    assert hasattr(ly.ParseOptions, "StoreOnly")
+    assert hasattr(ly.ParseOptions, "JsonNull")
+    assert hasattr(ly.ParseOptions, "JsonStringDataTypes")
+    assert hasattr(ly.PrintFlags, "JsonNoNestedPrefix")
+    assert hasattr(ly.ValidationOptions, "NotFinal")

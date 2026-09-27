@@ -5,8 +5,9 @@ import pytest
 
 @pytest.fixture(scope='function')
 def context_no_libyang():
+    # libyang 4.7.x is stable here with RefImplemented; AllImplemented crashes during manual module loading.
     return ly.Context(str(Path(os.environ.get('CMAKE_CURRENT_SOURCE_DIR', os.getcwd())) / 'tests' / 'yang'),
-                      ly.ContextOptions.AllImplemented | ly.ContextOptions.NoYangLibrary)
+                      ly.ContextOptions.RefImplemented | ly.ContextOptions.NoYangLibrary)
 
 @pytest.fixture(scope='function')
 def context_with_modules(context_no_libyang):
